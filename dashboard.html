@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Leads · Anthony Gallant State Farm</title>
+  <meta name="robots" content="noindex,nofollow" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            sf: {
+              red:     '#E22925',
+              redDark: '#B81E1B',
+              ink:     '#111111',
+              gray:    '#6B7280',
+              cream:   '#FDFBF7',
+            },
+          },
+          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .pill { display:inline-flex; align-items:center; gap:.25rem; padding:.125rem .5rem; border-radius:9999px; font-size:.7rem; font-weight:600; }
+    .pill-new       { background:#FEE2E2; color:#B81E1B; }
+    .pill-contacted { background:#FEF3C7; color:#92400E; }
+    .pill-quoted    { background:#DBEAFE; color:#1E40AF; }
+    .pill-bound     { background:#D1FAE5; color:#065F46; }
+    .pill-lost      { background:#F3F4F6; color:#4B5563; }
+    .tab[aria-pressed="true"] { background:#111; color:#fff; }
+    .row-saving { background-color:#FFFBEB; }
+    .row-saved  { background-color:#ECFDF5; transition: background-color 1.2s ease; }
+  </style>
+</head>
+
+<body class="bg-sf-cream text-sf-ink antialiased min-h-screen">
+
+  <!-- =========== LOGIN VIEW =========== -->
+  <div id="view-login" class="hidden min-h-screen flex items-center justify-center px-5">
+    <form id="login-form" class="w-full max-w-sm rounded-2xl bg-white border border-black/10 shadow-sm p-6 space-y-4">
+      <div>
+        <div class="text-sf-red font-extrabold tracking-tight text-lg">State Farm<sup class="text-[10px]">&reg;</sup></div>
+        <h1 class="mt-2 text-2xl font-extrabold">Leads dashboard</h1>
+        <p class="text-sm text-sf-ink/65">Enter the office password to continue.</p>
+      </div>
+      <div>
+        <label for="password" class="sr-only">Password</label>
+        <input id="password" name="password" type="password" required autofocus autocomplete="current-password"
+          class="w-full rounded-lg border border-black/15 px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
+      </div>
+      <button id="login-btn" type="submit"
+        class="w-full rounded-lg bg-sf-red hover:bg-sf-redDark text-white font-bold py-3 transition disabled:opacity-60">
+        Sign in
+      </button>
+      <div id="login-error" class="hidden text-sm text-sf-red text-center"></div>
+    </form>
+  </div>
+
+  <!-- =========== DASHBOARD VIEW =========== -->
+  <div id="view-dash" class="hidden">
+
+    <!-- Header -->
+    <header class="border-b border-black/10 bg-white sticky top-0 z-10">
+      <div class="mx-auto max-w-6xl px-5 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="font-extrabold tracking-tight text-sf-red text-lg">State Farm<sup class="text-[10px]">&reg;</sup></span>
+          <span class="text-sm text-sf-ink/55 hidden sm:inline">·</span>
+          <span class="text-sm font-semibold text-sf-ink hidden sm:inline">Leads</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <button id="refresh-btn" class="text-sm font-semibold text-sf-ink/70 hover:text-sf-red">Refresh</button>
+          <button id="logout-btn" class="text-sm font-semibold text-sf-ink/70 hover:text-sf-red">Log out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-5 py-6 space-y-6">
+
+      <!-- Stats row -->
+      <section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="rounded-xl bg-white border border-black/10 p-4">
+          <div class="text-xs uppercase tracking-wide text-sf-ink/55 font-semibold">Total leads</div>
+          <div id="stat-total" class="mt-1 text-2xl font-extrabold">—</div>
+        </div>
+        <div class="rounded-xl bg-white border border-black/10 p-4">
+          <div class="text-xs uppercase tracking-wide text-sf-ink/55 font-semibold">This week</div>
+          <div id="stat-week" class="mt-1 text-2xl font-extrabold">—</div>
+        </div>
+        <div class="rounded-xl bg-white border border-black/10 p-4">
+          <div class="text-xs uppercase tracking-wide text-sf-ink/55 font-semibold">New (untouched)</div>
+          <div id="stat-new" class="mt-1 text-2xl font-extrabold text-sf-red">—</div>
+        </div>
+        <div class="rounded-xl bg-white border border-black/10 p-4">
+          <div class="text-xs uppercase tracking-wide text-sf-ink/55 font-semibold">Bound</div>
+          <div id="stat-bound" class="mt-1 text-2xl font-extrabold">—</div>
+        </div>
+      </section>
+
+      <!-- Filter tabs -->
+      <section>
+        <div class="flex flex-wrap gap-2" id="filters">
+          <button class="tab px-3 py-1.5 rounded-full text-sm font-semibold border border-black/15 bg-white hover:bg-black/5" data-status="">All</button>
+          <button class="tab px-3 py-1.5 rounded-full text-sm font-semibold border border-black/15 bg-white hover:bg-black/5" data-status="new">New</button>
+          <button class="tab px-3 py-1.5 rounded-full text-sm font-semibold border border-black/15 bg-white hover:bg-black/5" data-status="contacted">Contacted</button>
+          <button class="tab px-3 py-1.5 rounded-full text-sm font-semibold border border-black/15 bg-white hover:bg-black/5" data-status="quoted">Quoted</button>
+          <button class="tab px-3 py-1.5 rounded-full text-sm font-semibold border border-black/15 bg-white hover:bg-black/5" data-status="bound">Bound</button>
+          <button class="tab px-3 py-1.5 rounded-full text-sm font-semibold border border-black/15 bg-white hover:bg-black/5" data-status="lost">Lost</button>
+        </div>
+      </section>
+
+      <!-- Lead list -->
+      <section>
+        <div id="lead-list" class="space-y-3">
+          <div class="rounded-xl bg-white border border-black/10 p-6 text-center text-sf-ink/55">Loading…</div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <template id="lead-card-tpl">
+    <article class="lead-card rounded-xl bg-white border border-black/10 p-4 shadow-sm" data-lead-id="">
+      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h3 class="text-lg font-bold name truncate"></h3>
+            <span class="pill status-pill"></span>
+            <span class="text-xs text-sf-ink/55 received-at"></span>
+          </div>
+          <div class="mt-1 text-sm space-y-0.5">
+            <div>
+              <a class="phone-link font-semibold text-sf-ink hover:text-sf-red" href=""></a>
+              <span class="text-sf-ink/40 mx-1">·</span>
+              <a class="sms-link text-sf-red font-semibold hover:underline" href="">Text</a>
+              <span class="text-sf-ink/40 mx-1">·</span>
+              <a class="call-link text-sf-red font-semibold hover:underline" href="">Call</a>
+            </div>
+            <div><a class="email-link text-sf-ink/80 hover:text-sf-red" href=""></a></div>
+            <div class="text-xs text-sf-ink/55 source-line"></div>
+          </div>
+        </div>
+        <div class="sm:w-56 flex-shrink-0">
+          <label class="block text-xs font-semibold text-sf-ink/55 uppercase tracking-wide mb-1">Status</label>
+          <select class="status-select w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20">
+            <option value="new">New</option>
+            <option value="contacted">Contacted</option>
+            <option value="quoted">Quoted</option>
+            <option value="bound">Bound</option>
+            <option value="lost">Lost</option>
+          </select>
+        </div>
+      </div>
+      <div class="mt-3">
+        <label class="block text-xs font-semibold text-sf-ink/55 uppercase tracking-wide mb-1">Notes</label>
+        <textarea rows="2" class="notes-input w-full rounded-lg border border-black/15 px-3 py-2 text-sm focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" placeholder="Add a note (saved when you click away)"></textarea>
+      </div>
+    </article>
+  </template>
+
+  <script type="module">
+    // ---------- views ----------
+    const loginView = document.getElementById('view-login');
+    const dashView  = document.getElementById('view-dash');
+    const loginForm = document.getElementById('login-form');
+    const loginErr  = document.getElementById('login-error');
+    const loginBtn  = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const refreshBtn = document.getElementById('refresh-btn');
+    const leadList   = document.getElementById('lead-list');
+    const filtersEl  = document.getElementById('filters');
+
+    // ---------- state ----------
+    let activeStatus = '';   // '' = all
+    let leads = [];          // most recent fetch, unfiltered
+    let pollTimer = null;
+
+    // ---------- bootstrap ----------
+    showView('loading');
+    fetchAndRender().catch(handleFetchError);
+
+    // ---------- event wiring ----------
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      loginErr.classList.add('hidden');
+      loginBtn.disabled = true;
+      loginBtn.textContent = 'Signing in…';
+      try {
+        const password = document.getElementById('password').value;
+        const r = await fetch('/api/dashboard-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password }),
+        });
+        if (!r.ok) {
+          const { error } = await r.json().catch(() => ({}));
+          throw new Error(error || `HTTP ${r.status}`);
+        }
+        await fetchAndRender();
+      } catch (err) {
+        loginErr.textContent = err.message || 'Sign in failed';
+        loginErr.classList.remove('hidden');
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = 'Sign in';
+      }
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      await fetch('/api/dashboard-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ logout: true }),
+      });
+      stopPolling();
+      showView('login');
+    });
+
+    refreshBtn.addEventListener('click', () => fetchAndRender().catch(handleFetchError));
+
+    filtersEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('button.tab');
+      if (!btn) return;
+      activeStatus = btn.dataset.status || '';
+      render();
+    });
+
+    // ---------- data ----------
+    async function fetchAndRender() {
+      const r = await fetch('/api/leads', { credentials: 'same-origin' });
+      if (r.status === 401) {
+        showView('login');
+        return;
+      }
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const data = await r.json();
+      leads = Array.isArray(data.leads) ? data.leads : [];
+      showView('dash');
+      render();
+      startPolling();
+    }
+
+    function handleFetchError(err) {
+      console.error(err);
+      showView('login');
+    }
+
+    function startPolling() {
+      stopPolling();
+      pollTimer = setInterval(async () => {
+        try {
+          const r = await fetch('/api/leads', { credentials: 'same-origin' });
+          if (!r.ok) return;
+          const data = await r.json();
+          leads = Array.isArray(data.leads) ? data.leads : [];
+          render();
+        } catch {}
+      }, 30000);
+    }
+    function stopPolling() { if (pollTimer) clearInterval(pollTimer); pollTimer = null; }
+
+    // ---------- render ----------
+    function render() {
+      // tabs
+      for (const btn of filtersEl.querySelectorAll('button.tab')) {
+        btn.setAttribute('aria-pressed', (btn.dataset.status || '') === activeStatus ? 'true' : 'false');
+      }
+      // stats (computed from full set, not the filtered view)
+      const now = Date.now();
+      const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
+      const total = leads.length;
+      const week  = leads.filter(l => new Date(l.created_at).getTime() >= weekAgo).length;
+      const nu    = leads.filter(l => l.status === 'new').length;
+      const bound = leads.filter(l => l.status === 'bound').length;
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-week').textContent  = week;
+      document.getElementById('stat-new').textContent   = nu;
+      document.getElementById('stat-bound').textContent = bound;
+
+      // list
+      const filtered = activeStatus ? leads.filter(l => l.status === activeStatus) : leads;
+      if (filtered.length === 0) {
+        leadList.innerHTML = `<div class="rounded-xl bg-white border border-black/10 p-6 text-center text-sf-ink/55">No leads to show.</div>`;
+        return;
+      }
+      leadList.innerHTML = '';
+      const tpl = document.getElementById('lead-card-tpl');
+      for (const lead of filtered) {
+        const node = tpl.content.firstElementChild.cloneNode(true);
+        renderCard(node, lead);
+        leadList.appendChild(node);
+      }
+    }
+
+    function renderCard(card, lead) {
+      card.dataset.leadId = lead.id;
+      card.querySelector('.name').textContent = lead.first_name || '(no name)';
+
+      const pill = card.querySelector('.status-pill');
+      pill.textContent = lead.status;
+      pill.classList.add(`pill-${lead.status}`);
+
+      card.querySelector('.received-at').textContent = relTime(lead.created_at);
+
+      const phoneLink = card.querySelector('.phone-link');
+      phoneLink.href = `tel:${lead.phone}`;
+      phoneLink.textContent = formatPhone(lead.phone);
+      card.querySelector('.sms-link').href = `sms:${lead.phone}`;
+      card.querySelector('.call-link').href = `tel:${lead.phone}`;
+
+      const emailLink = card.querySelector('.email-link');
+      emailLink.href = `mailto:${lead.email}`;
+      emailLink.textContent = lead.email;
+
+      const src = [lead.source, lead.medium, lead.campaign].filter(Boolean).join(' / ') || 'direct';
+      card.querySelector('.source-line').textContent = src;
+
+      const sel = card.querySelector('.status-select');
+      sel.value = lead.status;
+      sel.addEventListener('change', () => save(card, lead, { status: sel.value }));
+
+      const notes = card.querySelector('.notes-input');
+      notes.value = lead.notes || '';
+      let dirty = false;
+      notes.addEventListener('input', () => { dirty = true; });
+      notes.addEventListener('blur', () => {
+        if (!dirty) return;
+        dirty = false;
+        save(card, lead, { notes: notes.value });
+      });
+    }
+
+    async function save(card, lead, patch) {
+      card.classList.add('row-saving');
+      try {
+        const r = await fetch('/api/lead-update', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ id: lead.id, ...patch }),
+        });
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const data = await r.json();
+        if (data.lead) Object.assign(lead, data.lead);
+        // update local copy in the leads array too
+        const i = leads.findIndex(x => x.id === lead.id);
+        if (i >= 0) leads[i] = lead;
+        // refresh pill + stats without rebuilding the whole list
+        const pill = card.querySelector('.status-pill');
+        pill.className = `pill status-pill pill-${lead.status}`;
+        pill.textContent = lead.status;
+        // recompute stats quickly
+        render(); // simplest: re-render
+      } catch (e) {
+        console.error(e);
+        alert('Save failed. Try again.');
+      } finally {
+        card.classList.remove('row-saving');
+        card.classList.add('row-saved');
+        setTimeout(() => card.classList.remove('row-saved'), 1200);
+      }
+    }
+
+    // ---------- helpers ----------
+    function showView(which) {
+      loginView.classList.toggle('hidden', which !== 'login');
+      dashView.classList.toggle('hidden', which !== 'dash');
+    }
+
+    function formatPhone(e164) {
+      if (!e164) return '';
+      const d = e164.replace(/\D/g, '');
+      if (d.length === 11 && d.startsWith('1')) {
+        return `(${d.slice(1,4)}) ${d.slice(4,7)}-${d.slice(7)}`;
+      }
+      return e164;
+    }
+
+    function relTime(iso) {
+      if (!iso) return '';
+      const t = new Date(iso).getTime();
+      const diff = (Date.now() - t) / 1000;
+      if (diff < 60)        return `${Math.floor(diff)}s ago`;
+      if (diff < 3600)      return `${Math.floor(diff/60)}m ago`;
+      if (diff < 86400)     return `${Math.floor(diff/3600)}h ago`;
+      if (diff < 7*86400)   return `${Math.floor(diff/86400)}d ago`;
+      return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    }
+  </script>
+</body>
+</html>

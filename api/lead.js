@@ -1,17 +1,19 @@
 // /api/lead — Vercel serverless function
-// Receives form submissions from the landing page, notifies Anthony, and (optionally)
-// sends a confirmation text to the lead. Designed to no-op gracefully if env vars are
-// missing so you can deploy first and wire integrations incrementally.
+// Receives form submissions from the landing page, persists to Supabase, notifies Anthony,
+// and (optionally) sends a confirmation text to the lead. Each channel is independent —
+// if env vars for one are missing, the others still run.
 //
-// Env vars (all optional; if missing, that channel is skipped):
-//   ANTHONY_EMAIL         e.g. anthony.gallant.x9z2@statefarm.com
-//   ANTHONY_PHONE         e.g. +17048538001 (E.164)
-//   RESEND_API_KEY        from resend.com (free tier: 3,000 emails/mo)
-//   FROM_EMAIL            e.g. leads@yourdomain.com (must be a domain verified in Resend)
-//   TWILIO_ACCOUNT_SID    from twilio.com
+// Env vars (channels gracefully skipped when their vars are missing):
+//   SUPABASE_URL                 e.g. https://abcd.supabase.co
+//   SUPABASE_SERVICE_ROLE_KEY    server-only key — never expose to the browser
+//   ANTHONY_EMAIL                e.g. anthony.gallant.x9z2@statefarm.com
+//   ANTHONY_PHONE                e.g. +17048538001 (E.164)
+//   RESEND_API_KEY               from resend.com (free tier: 3,000 emails/mo)
+//   FROM_EMAIL                   e.g. leads@yourdomain.com (must be a domain verified in Resend)
+//   TWILIO_ACCOUNT_SID           from twilio.com
 //   TWILIO_AUTH_TOKEN
-//   TWILIO_FROM_NUMBER    e.g. +17045550100 (a Twilio number you own)
-//   SEND_LEAD_CONFIRMATION  "true" to also text the lead immediately
+//   TWILIO_FROM_NUMBER           e.g. +17045550100 (a Twilio number you own)
+//   SEND_LEAD_CONFIRMATION       "true" to also text the lead immediately
 
 export default async function handler(req, res) {
   // CORS (in case form is ever hosted on a different domain)
@@ -73,6 +75,16 @@ export default async function handler(req, res) {
   // ALWAYS log so we can see it in Vercel function logs even if no integrations set.
   console.log('NEW_LEAD', JSON.stringify(lead));
 
+  // Persist to Supabase first (so dashboard always sees the lead, even if email/SMS fails).
+  // Still fail-soft: a DB outage shouldn't drop the notification path.
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      await saveLeadToSupabase(lead);
+    } catch (e) {
+      console.error('supabase_insert_failed', e);
+    }
+  }
+
   // Fan out notifications in parallel. Don't let any one failure block the others.
   const tasks = [];
   if (process.env.RESEND_API_KEY && process.env.ANTHONY_EMAIL && process.env.FROM_EMAIL) {
@@ -87,6 +99,33 @@ export default async function handler(req, res) {
   await Promise.all(tasks);
 
   return res.status(200).json({ ok: true });
+}
+
+// --- Supabase -------------------------------------------------------------
+
+async function saveLeadToSupabase(lead) {
+  const url = `${process.env.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/leads`;
+  const row = {
+    first_name: lead.firstName,
+    phone:      lead.phone,
+    email:      lead.email,
+    source:     lead.source,
+    medium:     lead.medium,
+    campaign:   lead.campaign,
+    user_agent: lead.userAgent,
+    ip:         lead.ip,
+  };
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'apikey':        process.env.SUPABASE_SERVICE_ROLE_KEY,
+      'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+      'Content-Type':  'application/json',
+      'Prefer':        'return=minimal',
+    },
+    body: JSON.stringify(row),
+  });
+  if (!resp.ok) throw new Error(`Supabase ${resp.status}: ${await resp.text()}`);
 }
 
 // --- Notification helpers ---------------------------------------------------
