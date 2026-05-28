@@ -52,3 +52,18 @@ create trigger leads_touch_status
 -- Lock the table down. The server uses the service_role key, which bypasses RLS.
 -- The anon/auth keys (used in browsers) get zero access until you add a policy.
 alter table public.leads enable row level security;
+
+-- ---------------------------------------------------------------------------
+-- Key/value settings (e.g. the office email notification recipient list).
+-- Managed from the dashboard Settings panel; read server-side at lead time.
+create table if not exists public.settings (
+  key        text primary key,
+  value      text not null default '',
+  updated_at timestamptz not null default now()
+);
+
+insert into public.settings (key, value)
+values ('notify_emails', '')
+on conflict (key) do nothing;
+
+alter table public.settings enable row level security;

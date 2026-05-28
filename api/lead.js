@@ -1,22 +1,21 @@
 // /api/lead — Vercel serverless function
-// Receives form submissions from the landing page, persists to Supabase, notifies Anthony,
-// and (optionally) sends a confirmation text to the lead. Each channel is independent —
-// if env vars for one are missing, the others still run.
+// Receives form submissions from the landing page, persists to Supabase, and sends two
+// emails via Resend: a confirmation to the lead and a notification to the office. Each
+// step is independent and fail-soft — a failure in one never blocks the others.
 //
-// Env vars (channels gracefully skipped when their vars are missing):
+// Env vars (email is skipped if its vars are missing):
 //   SUPABASE_URL                 e.g. https://abcd.supabase.co
 //   SUPABASE_SERVICE_ROLE_KEY    server-only key — never expose to the browser
-//   ANTHONY_EMAIL                e.g. anthony.gallant.x9z2@statefarm.com
-//   ANTHONY_PHONE                e.g. +17048538001 (E.164)
 //   RESEND_API_KEY               from resend.com (free tier: 3,000 emails/mo)
-//   FROM_EMAIL                   e.g. leads@yourdomain.com (must be a domain verified in Resend)
-//   TWILIO_ACCOUNT_SID           from twilio.com
-//   TWILIO_AUTH_TOKEN
-//   TWILIO_FROM_NUMBER           e.g. +17045550100 (a Twilio number you own)
-//   SEND_LEAD_CONFIRMATION       "true" to also text the lead immediately
+//   FROM_EMAIL                   e.g. leads@gallantrenters.com (must be a domain verified in Resend)
+//
+// Office notification recipients are managed from the dashboard Settings panel and stored
+// in the Supabase `settings` table (key = notify_emails). No env var needed for them.
+
+const OFFICE_PHONE = '(704) 853-8001';
 
 export default async function handler(req, res) {
-  // CORS (in case form is ever hosted on a different domain)
+  // CORS (in case the form is ever hosted on a different domain)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -45,7 +44,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Invalid email' });
   }
 
-  // Normalize US phone to E.164 (+1XXXXXXXXXX). Twilio is strict about format.
+  // Normalize US phone to E.164 (+1XXXXXXXXXX).
   const digits = phoneRaw.replace(/\D/g, '');
   const phoneE164 =
     digits.length === 10 ? `+1${digits}` :
@@ -75,8 +74,7 @@ export default async function handler(req, res) {
   // ALWAYS log so we can see it in Vercel function logs even if no integrations set.
   console.log('NEW_LEAD', JSON.stringify(lead));
 
-  // Persist to Supabase first (so dashboard always sees the lead, even if email/SMS fails).
-  // Still fail-soft: a DB outage shouldn't drop the notification path.
+  // Persist to Supabase first (so the dashboard always sees the lead). Fail-soft.
   if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
     try {
       await saveLeadToSupabase(lead);
@@ -85,23 +83,26 @@ export default async function handler(req, res) {
     }
   }
 
-  // Fan out notifications in parallel. Don't let any one failure block the others.
-  const tasks = [];
-  if (process.env.RESEND_API_KEY && process.env.ANTHONY_EMAIL && process.env.FROM_EMAIL) {
-    tasks.push(emailAnthony(lead).catch(e => console.error('email_anthony_failed', e)));
+  // Email notifications via Resend. Both are independent and fail-soft.
+  if (process.env.RESEND_API_KEY && process.env.FROM_EMAIL) {
+    await Promise.all([
+      // 1) Confirmation to the lead.
+      emailLeadConfirmation(lead).catch(e => console.error('email_lead_confirmation_failed', e)),
+      // 2) Notification to the office recipient list (managed in the dashboard).
+      getNotifyRecipients()
+        .then(recips => recips.length
+          ? emailOffice(lead, recips)
+          : console.log('no_notify_recipients_configured'))
+        .catch(e => console.error('email_office_failed', e)),
+    ]);
+  } else {
+    console.log('resend_not_configured_email_skipped');
   }
-  if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_FROM_NUMBER && process.env.ANTHONY_PHONE) {
-    tasks.push(smsAnthony(lead).catch(e => console.error('sms_anthony_failed', e)));
-    if (process.env.SEND_LEAD_CONFIRMATION === 'true') {
-      tasks.push(smsLead(lead).catch(e => console.error('sms_lead_failed', e)));
-    }
-  }
-  await Promise.all(tasks);
 
   return res.status(200).json({ ok: true });
 }
 
-// --- Supabase -------------------------------------------------------------
+// --- Supabase ---------------------------------------------------------------
 
 async function saveLeadToSupabase(lead) {
   const url = `${process.env.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/leads`;
@@ -128,13 +129,51 @@ async function saveLeadToSupabase(lead) {
   if (!resp.ok) throw new Error(`Supabase ${resp.status}: ${await resp.text()}`);
 }
 
-// --- Notification helpers ---------------------------------------------------
+async function getNotifyRecipients() {
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) return [];
+  const url = `${process.env.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/settings?key=eq.notify_emails&select=value`;
+  const resp = await fetch(url, {
+    headers: {
+      'apikey':        process.env.SUPABASE_SERVICE_ROLE_KEY,
+      'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+  });
+  if (!resp.ok) return [];
+  const rows = await resp.json();
+  return String(rows[0]?.value || '')
+    .split(/[\s,;]+/)
+    .map(s => s.trim().toLowerCase())
+    .filter(e => /.+@.+\..+/.test(e));
+}
 
-async function emailAnthony(lead) {
-  const subject = `New renters insurance lead — ${lead.firstName} (${lead.source})`;
+// --- Email (Resend) ---------------------------------------------------------
+
+async function emailLeadConfirmation(lead) {
+  const subject = 'Thanks — we got your renters insurance request';
   const html = `
-    <div style="font-family: -apple-system, sans-serif; max-width: 520px;">
-      <h2 style="margin:0 0 12px;color:#E22925;">New lead — text within 5 minutes</h2>
+    <div style="font-family:-apple-system,Segoe UI,sans-serif;max-width:520px;color:#111;">
+      <p style="font-size:15px;">Hi ${escapeHtml(lead.firstName)},</p>
+      <p style="font-size:15px;line-height:1.5;">
+        Thanks for requesting a renters insurance quote with
+        <strong>Anthony Gallant State Farm</strong>. Someone from our office will reach out
+        shortly to finish your quote.
+      </p>
+      <p style="font-size:15px;line-height:1.5;">
+        Need us sooner? Call <a href="tel:+17048538001" style="color:#E22925;font-weight:600;">${OFFICE_PHONE}</a>.
+      </p>
+      <p style="font-size:13px;color:#666;margin-top:24px;">
+        Anthony Gallant, State Farm Agent · Charlotte, NC<br/>
+        State Farm Mutual Automobile Insurance Company, Bloomington, IL. Coverage subject to terms, conditions, and availability.
+      </p>
+    </div>`;
+  await resendSend({ to: [lead.email], subject, html, replyTo: process.env.FROM_EMAIL });
+}
+
+async function emailOffice(lead, recipients) {
+  const subject = `New renters lead — ${lead.firstName} (${lead.source})`;
+  const html = `
+    <div style="font-family:-apple-system,Segoe UI,sans-serif;max-width:520px;">
+      <h2 style="margin:0 0 12px;color:#E22925;">New lead — reach out fast</h2>
       <table style="border-collapse:collapse;width:100%;font-size:14px;">
         <tr><td style="padding:6px 0;color:#666;width:120px;">Name</td><td style="padding:6px 0;font-weight:600;">${escapeHtml(lead.firstName)}</td></tr>
         <tr><td style="padding:6px 0;color:#666;">Phone</td><td style="padding:6px 0;font-weight:600;"><a href="sms:${lead.phone}">${lead.phone}</a> · <a href="tel:${lead.phone}">call</a></td></tr>
@@ -142,8 +181,12 @@ async function emailAnthony(lead) {
         <tr><td style="padding:6px 0;color:#666;">Source</td><td style="padding:6px 0;">${escapeHtml(lead.source)}${lead.campaign ? ' / ' + escapeHtml(lead.campaign) : ''}</td></tr>
         <tr><td style="padding:6px 0;color:#666;">Received</td><td style="padding:6px 0;">${escapeHtml(lead.receivedAt)}</td></tr>
       </table>
-      <p style="margin:18px 0 0;color:#666;font-size:12px;">Speed-to-lead matters. Aim to reach out within 5 minutes.</p>
+      <p style="margin:18px 0 0;color:#666;font-size:12px;">Speed-to-lead matters — aim to reach out within a few minutes.</p>
     </div>`;
+  await resendSend({ to: recipients, subject, html, replyTo: lead.email });
+}
+
+async function resendSend({ to, subject, html, replyTo }) {
   const resp = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -152,42 +195,13 @@ async function emailAnthony(lead) {
     },
     body: JSON.stringify({
       from: process.env.FROM_EMAIL,
-      to: [process.env.ANTHONY_EMAIL],
+      to,
       subject,
       html,
-      reply_to: lead.email,
+      reply_to: replyTo,
     }),
   });
   if (!resp.ok) throw new Error(`Resend ${resp.status}: ${await resp.text()}`);
-}
-
-async function smsAnthony(lead) {
-  const body = `🚨 New lead (${lead.source}): ${lead.firstName} · ${lead.phone} · ${lead.email}. Text within 5 min.`;
-  await twilioSend(process.env.ANTHONY_PHONE, body);
-}
-
-async function smsLead(lead) {
-  const body = `Hi ${lead.firstName}, this is Anthony Gallant's office at State Farm. Thanks for requesting a renters insurance quote — Anthony will text you personally within 5 minutes. Reply STOP to opt out.`;
-  await twilioSend(lead.phone, body);
-}
-
-async function twilioSend(to, body) {
-  const sid = process.env.TWILIO_ACCOUNT_SID;
-  const auth = Buffer.from(`${sid}:${process.env.TWILIO_AUTH_TOKEN}`).toString('base64');
-  const params = new URLSearchParams({
-    To: to,
-    From: process.env.TWILIO_FROM_NUMBER,
-    Body: body,
-  });
-  const resp = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Basic ${auth}`,
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-    body: params.toString(),
-  });
-  if (!resp.ok) throw new Error(`Twilio ${resp.status}: ${await resp.text()}`);
 }
 
 function escapeHtml(s) {

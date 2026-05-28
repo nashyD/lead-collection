@@ -79,6 +79,7 @@
           <span class="text-sm font-semibold text-sf-ink hidden sm:inline">Leads</span>
         </div>
         <div class="flex items-center gap-3">
+          <button id="settings-btn" class="text-sm font-semibold text-sf-ink/70 hover:text-sf-red">Settings</button>
           <button id="refresh-btn" class="text-sm font-semibold text-sf-ink/70 hover:text-sf-red">Refresh</button>
           <button id="logout-btn" class="text-sm font-semibold text-sf-ink/70 hover:text-sf-red">Log out</button>
         </div>
@@ -116,6 +117,30 @@
       </section>
 
     </main>
+
+    <!-- Settings modal -->
+    <div id="settings-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div id="settings-backdrop" class="absolute inset-0 bg-black/40"></div>
+      <div class="relative w-full max-w-lg rounded-2xl bg-white border border-black/10 shadow-xl p-6">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-extrabold">Notification settings</h2>
+            <p class="text-sm text-sf-ink/65 mt-1">Who gets an email when a new lead comes in.</p>
+          </div>
+          <button id="settings-close" class="text-sf-ink/40 hover:text-sf-red text-2xl leading-none">&times;</button>
+        </div>
+        <div class="mt-5">
+          <label for="notify-emails" class="block text-xs font-semibold text-sf-ink/55 uppercase tracking-wide mb-1">Office notification emails</label>
+          <textarea id="notify-emails" rows="5" class="w-full rounded-lg border border-black/15 px-3 py-2 text-sm focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" placeholder="One per line (or comma-separated):&#10;anthony@example.com&#10;office@example.com"></textarea>
+          <p class="text-xs text-sf-ink/45 mt-1">Every new lead also gets an automatic confirmation email — no setup needed here.</p>
+        </div>
+        <div class="mt-5 flex items-center justify-end gap-3">
+          <span id="settings-status" class="text-xs text-sf-ink/55 mr-auto"></span>
+          <button id="settings-cancel" class="text-sm font-semibold text-sf-ink/60 hover:text-sf-ink">Cancel</button>
+          <button id="settings-save" class="rounded-lg bg-sf-red hover:bg-sf-redDark text-white font-bold px-4 py-2 text-sm transition disabled:opacity-60">Save</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- One pipeline column -->
@@ -240,6 +265,53 @@
     });
 
     refreshBtn.addEventListener('click', () => fetchAndRender().catch(handleFetchError));
+
+    // ---------- settings modal ----------
+    const settingsModal  = document.getElementById('settings-modal');
+    const notifyEmails   = document.getElementById('notify-emails');
+    const settingsStatus = document.getElementById('settings-status');
+    const settingsSave   = document.getElementById('settings-save');
+
+    function openSettings() {
+      settingsStatus.textContent = 'Loading…';
+      notifyEmails.value = '';
+      settingsModal.classList.remove('hidden');
+      fetch('/api/settings', { credentials: 'same-origin' })
+        .then(r => r.ok ? r.json() : Promise.reject(r.status))
+        .then(d => { notifyEmails.value = (d.notify_emails || []).join('\n'); settingsStatus.textContent = ''; })
+        .catch(() => { settingsStatus.textContent = 'Could not load current settings.'; });
+    }
+    function closeSettings() { settingsModal.classList.add('hidden'); }
+
+    document.getElementById('settings-btn').addEventListener('click', openSettings);
+    document.getElementById('settings-close').addEventListener('click', closeSettings);
+    document.getElementById('settings-cancel').addEventListener('click', closeSettings);
+    document.getElementById('settings-backdrop').addEventListener('click', closeSettings);
+
+    settingsSave.addEventListener('click', async () => {
+      settingsSave.disabled = true;
+      settingsStatus.textContent = 'Saving…';
+      try {
+        const r = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ notify_emails: notifyEmails.value }),
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const d = await r.json();
+        const list = d.notify_emails || [];
+        notifyEmails.value = list.join('\n');
+        settingsStatus.textContent = list.length
+          ? `Saved — ${list.length} recipient${list.length === 1 ? '' : 's'}.`
+          : 'Saved — no recipients yet.';
+      } catch (e) {
+        console.error(e);
+        settingsStatus.textContent = 'Save failed. Try again.';
+      } finally {
+        settingsSave.disabled = false;
+      }
+    });
 
     // ---------- data ----------
     async function fetchAndRender() {
