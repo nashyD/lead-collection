@@ -72,7 +72,7 @@
 
     <!-- Header -->
     <header class="border-b border-black/10 bg-white sticky top-0 z-10">
-      <div class="mx-auto max-w-6xl px-5 py-3 flex items-center justify-between">
+      <div class="mx-auto max-w-[1500px] px-5 py-3 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <span class="font-extrabold tracking-tight text-sf-red text-lg">State Farm<sup class="text-[10px]">&reg;</sup></span>
           <span class="text-sm text-sf-ink/55 hidden sm:inline">·</span>
@@ -85,7 +85,7 @@
       </div>
     </header>
 
-    <main class="mx-auto max-w-6xl px-5 py-6 space-y-6">
+    <main class="mx-auto max-w-[1500px] px-5 py-6 space-y-6">
 
       <!-- Stats row -->
       <section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -107,69 +107,67 @@
         </div>
       </section>
 
-      <!-- Filter tabs -->
+      <!-- Pipeline board -->
       <section>
-        <div class="flex flex-wrap gap-2" id="filters">
-          <button class="tab px-3 py-1.5 rounded-full text-sm font-semibold border border-black/15 bg-white hover:bg-black/5" data-status="">All</button>
-          <button class="tab px-3 py-1.5 rounded-full text-sm font-semibold border border-black/15 bg-white hover:bg-black/5" data-status="new">New</button>
-          <button class="tab px-3 py-1.5 rounded-full text-sm font-semibold border border-black/15 bg-white hover:bg-black/5" data-status="contacted">Contacted</button>
-          <button class="tab px-3 py-1.5 rounded-full text-sm font-semibold border border-black/15 bg-white hover:bg-black/5" data-status="quoted">Quoted</button>
-          <button class="tab px-3 py-1.5 rounded-full text-sm font-semibold border border-black/15 bg-white hover:bg-black/5" data-status="bound">Bound</button>
-          <button class="tab px-3 py-1.5 rounded-full text-sm font-semibold border border-black/15 bg-white hover:bg-black/5" data-status="lost">Lost</button>
+        <div id="board" class="flex gap-4 overflow-x-auto pb-3">
+          <div class="text-sf-ink/55 py-10 px-1">Loading…</div>
         </div>
-      </section>
-
-      <!-- Lead list -->
-      <section>
-        <div id="lead-list" class="space-y-3">
-          <div class="rounded-xl bg-white border border-black/10 p-6 text-center text-sf-ink/55">Loading…</div>
-        </div>
+        <p class="text-xs text-sf-ink/45 mt-1">Change a card's <span class="font-semibold">Move to</span> dropdown to send it to another column.</p>
       </section>
 
     </main>
   </div>
 
+  <!-- One pipeline column -->
+  <template id="column-tpl">
+    <div class="col flex-shrink-0 w-[290px]">
+      <div class="flex items-center justify-between px-1 mb-2 pb-2 border-b-2 border-black/10">
+        <div class="flex items-center gap-2">
+          <span class="col-dot inline-block w-2.5 h-2.5 rounded-full"></span>
+          <span class="col-title text-sm font-bold"></span>
+        </div>
+        <span class="col-count text-xs font-bold text-sf-ink/60 bg-black/[0.06] rounded-full px-2 py-0.5">0</span>
+      </div>
+      <div class="col-body space-y-2.5"></div>
+    </div>
+  </template>
+
+  <!-- One lead card (compact, lives inside a column) -->
   <template id="lead-card-tpl">
-    <article class="lead-card rounded-xl bg-white border border-black/10 p-4 shadow-sm" data-lead-id="">
-      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-        <div class="min-w-0">
-          <div class="flex items-center gap-2 flex-wrap">
-            <h3 class="text-lg font-bold name truncate"></h3>
-            <span class="pill status-pill"></span>
-            <span class="text-xs text-sf-ink/55 received-at"></span>
-          </div>
-          <div class="mt-1 text-sm space-y-0.5">
-            <div>
-              <a class="phone-link font-semibold text-sf-ink hover:text-sf-red" href=""></a>
-              <span class="text-sf-ink/40 mx-1">·</span>
-              <a class="sms-link text-sf-red font-semibold hover:underline" href="">Text</a>
-              <span class="text-sf-ink/40 mx-1">·</span>
-              <a class="call-link text-sf-red font-semibold hover:underline" href="">Call</a>
-            </div>
-            <div><a class="email-link text-sf-ink/80 hover:text-sf-red" href=""></a></div>
-            <div class="text-xs text-sf-ink/55 source-line"></div>
-          </div>
-        </div>
-        <div class="sm:w-56 flex-shrink-0">
-          <label class="block text-xs font-semibold text-sf-ink/55 uppercase tracking-wide mb-1">Status</label>
-          <select class="status-select w-full rounded-lg border border-black/15 bg-white px-3 py-2 text-sm focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20">
-            <option value="new">New</option>
-            <option value="contacted">Contacted</option>
-            <option value="quoted">Quoted</option>
-            <option value="bound">Bound</option>
-            <option value="lost">Lost</option>
-          </select>
-        </div>
+    <article class="lead-card rounded-xl bg-white border border-black/10 p-3.5 shadow-sm" data-lead-id="">
+      <div class="flex items-baseline justify-between gap-2">
+        <h3 class="text-base font-bold name truncate"></h3>
+        <span class="text-[11px] text-sf-ink/50 received-at flex-shrink-0"></span>
       </div>
-      <div class="mt-3">
-        <label class="block text-xs font-semibold text-sf-ink/55 uppercase tracking-wide mb-1">Notes</label>
-        <textarea rows="2" class="notes-input w-full rounded-lg border border-black/15 px-3 py-2 text-sm focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" placeholder="Add a note (saved when you click away)"></textarea>
+      <div class="mt-1 text-sm space-y-0.5">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <a class="phone-link font-semibold text-sf-ink hover:text-sf-red" href=""></a>
+          <span class="text-sf-ink/30">·</span>
+          <a class="sms-link text-sf-red font-semibold hover:underline" href="">Text</a>
+          <span class="text-sf-ink/30">·</span>
+          <a class="call-link text-sf-red font-semibold hover:underline" href="">Call</a>
+        </div>
+        <div class="truncate"><a class="email-link text-sf-ink/75 hover:text-sf-red text-[13px]" href=""></a></div>
+        <div class="text-[11px] text-sf-ink/50 source-line"></div>
       </div>
-      <div class="mt-2 flex justify-end">
-        <button type="button" class="delete-btn text-xs font-semibold text-sf-ink/40 hover:text-sf-red transition">Delete lead</button>
-        <span class="confirm-wrap hidden items-center gap-3 text-xs">
-          <span class="text-sf-ink/70">Delete this lead permanently?</span>
-          <button type="button" class="confirm-yes font-bold text-sf-red hover:underline">Yes, delete</button>
+      <div class="mt-2.5">
+        <label class="block text-[10px] font-semibold text-sf-ink/45 uppercase tracking-wide mb-1">Move to</label>
+        <select class="status-select w-full rounded-lg border border-black/15 bg-white px-2.5 py-1.5 text-sm focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20">
+          <option value="new">New</option>
+          <option value="contacted">Contacted</option>
+          <option value="quoted">Quoted</option>
+          <option value="bound">Bound</option>
+          <option value="lost">Lost</option>
+        </select>
+      </div>
+      <div class="mt-2.5">
+        <textarea rows="2" class="notes-input w-full rounded-lg border border-black/15 px-2.5 py-1.5 text-[13px] focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" placeholder="Add a note…"></textarea>
+      </div>
+      <div class="mt-1.5 flex justify-end">
+        <button type="button" class="delete-btn text-[11px] font-semibold text-sf-ink/40 hover:text-sf-red transition">Delete</button>
+        <span class="confirm-wrap hidden items-center gap-2 text-[11px]">
+          <span class="text-sf-ink/70">Delete?</span>
+          <button type="button" class="confirm-yes font-bold text-sf-red hover:underline">Yes</button>
           <button type="button" class="confirm-no font-semibold text-sf-ink/55 hover:underline">Cancel</button>
         </span>
       </div>
@@ -185,11 +183,18 @@
     const loginBtn  = document.getElementById('login-btn');
     const logoutBtn = document.getElementById('logout-btn');
     const refreshBtn = document.getElementById('refresh-btn');
-    const leadList   = document.getElementById('lead-list');
-    const filtersEl  = document.getElementById('filters');
+    const board      = document.getElementById('board');
+
+    // ---------- config ----------
+    const COLUMNS = [
+      { key: 'new',       label: 'New',       dot: '#E22925' },
+      { key: 'contacted', label: 'Contacted', dot: '#D97706' },
+      { key: 'quoted',    label: 'Quoted',    dot: '#2563EB' },
+      { key: 'bound',     label: 'Bound',     dot: '#059669' },
+      { key: 'lost',      label: 'Lost',      dot: '#9CA3AF' },
+    ];
 
     // ---------- state ----------
-    let activeStatus = '';   // '' = all
     let leads = [];          // most recent fetch, unfiltered
     let pollTimer = null;
 
@@ -236,13 +241,6 @@
 
     refreshBtn.addEventListener('click', () => fetchAndRender().catch(handleFetchError));
 
-    filtersEl.addEventListener('click', (e) => {
-      const btn = e.target.closest('button.tab');
-      if (!btn) return;
-      activeStatus = btn.dataset.status || '';
-      render();
-    });
-
     // ---------- data ----------
     async function fetchAndRender() {
       const r = await fetch('/api/leads', { credentials: 'same-origin' });
@@ -279,45 +277,47 @@
 
     // ---------- render ----------
     function render() {
-      // tabs
-      for (const btn of filtersEl.querySelectorAll('button.tab')) {
-        btn.setAttribute('aria-pressed', (btn.dataset.status || '') === activeStatus ? 'true' : 'false');
-      }
-      // stats (computed from full set, not the filtered view)
+      // stats (computed from the full set)
       const now = Date.now();
       const weekAgo = now - 7 * 24 * 60 * 60 * 1000;
-      const total = leads.length;
-      const week  = leads.filter(l => new Date(l.created_at).getTime() >= weekAgo).length;
-      const nu    = leads.filter(l => l.status === 'new').length;
-      const bound = leads.filter(l => l.status === 'bound').length;
-      document.getElementById('stat-total').textContent = total;
-      document.getElementById('stat-week').textContent  = week;
-      document.getElementById('stat-new').textContent   = nu;
-      document.getElementById('stat-bound').textContent = bound;
+      document.getElementById('stat-total').textContent = leads.length;
+      document.getElementById('stat-week').textContent  = leads.filter(l => new Date(l.created_at).getTime() >= weekAgo).length;
+      document.getElementById('stat-new').textContent   = leads.filter(l => l.status === 'new').length;
+      document.getElementById('stat-bound').textContent = leads.filter(l => l.status === 'bound').length;
 
-      // list
-      const filtered = activeStatus ? leads.filter(l => l.status === activeStatus) : leads;
-      if (filtered.length === 0) {
-        leadList.innerHTML = `<div class="rounded-xl bg-white border border-black/10 p-6 text-center text-sf-ink/55">No leads to show.</div>`;
-        return;
-      }
-      leadList.innerHTML = '';
-      const tpl = document.getElementById('lead-card-tpl');
-      for (const lead of filtered) {
-        const node = tpl.content.firstElementChild.cloneNode(true);
-        renderCard(node, lead);
-        leadList.appendChild(node);
+      // pipeline board: one column per status, newest-first within each
+      const sorted = [...leads].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      const colTpl  = document.getElementById('column-tpl');
+      const cardTpl = document.getElementById('lead-card-tpl');
+
+      board.innerHTML = '';
+      for (const col of COLUMNS) {
+        const colNode = colTpl.content.firstElementChild.cloneNode(true);
+        colNode.querySelector('.col-title').textContent = col.label;
+        colNode.querySelector('.col-dot').style.background = col.dot;
+        const body = colNode.querySelector('.col-body');
+        const items = sorted.filter(l => l.status === col.key);
+        colNode.querySelector('.col-count').textContent = items.length;
+
+        if (items.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'text-xs text-sf-ink/35 border border-dashed border-black/15 rounded-lg py-6 text-center';
+          empty.textContent = 'No leads';
+          body.appendChild(empty);
+        } else {
+          for (const lead of items) {
+            const node = cardTpl.content.firstElementChild.cloneNode(true);
+            renderCard(node, lead);
+            body.appendChild(node);
+          }
+        }
+        board.appendChild(colNode);
       }
     }
 
     function renderCard(card, lead) {
       card.dataset.leadId = lead.id;
       card.querySelector('.name').textContent = lead.first_name || '(no name)';
-
-      const pill = card.querySelector('.status-pill');
-      pill.textContent = lead.status;
-      pill.classList.add(`pill-${lead.status}`);
-
       card.querySelector('.received-at').textContent = relTime(lead.created_at);
 
       const phoneLink = card.querySelector('.phone-link');
@@ -395,12 +395,8 @@
         // update local copy in the leads array too
         const i = leads.findIndex(x => x.id === lead.id);
         if (i >= 0) leads[i] = lead;
-        // refresh pill + stats without rebuilding the whole list
-        const pill = card.querySelector('.status-pill');
-        pill.className = `pill status-pill pill-${lead.status}`;
-        pill.textContent = lead.status;
-        // recompute stats quickly
-        render(); // simplest: re-render
+        // re-render: moves the card into its new column and refreshes counts
+        render();
       } catch (e) {
         console.error(e);
         alert('Save failed. Try again.');
