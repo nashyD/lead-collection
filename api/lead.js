@@ -59,6 +59,9 @@ export default async function handler(req, res) {
   const source   = String(body.utm_source   || 'direct').slice(0, 50);
   const medium   = String(body.utm_medium   || '').slice(0, 50);
   const campaign = String(body.utm_campaign || '').slice(0, 50);
+  // Self-reported apartment community (optional). Resolved to a complex_id at
+  // save time; falls back to free-text if it isn't a known complex.
+  const community = String(body.community || '').trim().slice(0, 200);
 
   const lead = {
     firstName,
@@ -67,6 +70,7 @@ export default async function handler(req, res) {
     source,
     medium,
     campaign,
+    community,
     receivedAt: new Date().toISOString(),
     userAgent: req.headers['user-agent'] || '',
     ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '',
@@ -106,7 +110,8 @@ export default async function handler(req, res) {
 // --- Supabase ---------------------------------------------------------------
 
 async function saveLeadToSupabase(lead) {
-  const url = `${process.env.SUPABASE_URL.replace(/\/$/, '')}/rest/v1/leads`;
+  const base = process.env.SUPABASE_URL.replace(/\/$/, '');
+  const url = `${base}/rest/v1/leads`;
   const row = {
     first_name: lead.firstName,
     phone:      lead.phone,
@@ -117,6 +122,29 @@ async function saveLeadToSupabase(lead) {
     user_agent: lead.userAgent,
     ip:         lead.ip,
   };
+
+  // Resolve the self-reported community to a known complex (case-insensitive
+  // exact match); otherwise keep it as free text. Never block the insert.
+  if (lead.community) {
+    try {
+      const q = new URL(`${base}/rest/v1/complexes`);
+      q.searchParams.set('select', 'id');
+      q.searchParams.set('name', `ilike.${lead.community}`);
+      q.searchParams.set('limit', '1');
+      const cr = await fetch(q, {
+        headers: {
+          apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+      });
+      const match = cr.ok ? (await cr.json())[0] : null;
+      if (match) row.complex_id = match.id;
+      else row.complex_other = lead.community;
+    } catch (e) {
+      console.error('complex_resolve_failed', e);
+      row.complex_other = lead.community;
+    }
+  }
   const resp = await fetch(url, {
     method: 'POST',
     headers: {

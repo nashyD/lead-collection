@@ -97,6 +97,13 @@
             <input id="email" name="email" type="email" required autocomplete="email" inputmode="email"
               class="mt-1 w-full rounded-lg border border-black/15 px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
           </div>
+          <div>
+            <label for="community" class="block text-sm font-semibold text-sf-ink" data-i18n="lbl_community">Apartment community (optional)</label>
+            <input id="community" name="community" type="text" list="complex-list" autocomplete="off"
+              placeholder="Start typing your community…" data-i18n-ph="community_ph"
+              class="mt-1 w-full rounded-lg border border-black/15 px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
+            <datalist id="complex-list"></datalist>
+          </div>
 
           <!-- Hidden source tracking -->
           <input type="hidden" id="utm_source" name="utm_source" />
@@ -201,6 +208,8 @@
         lbl_firstName: 'Nombre',
         lbl_phone: 'Teléfono celular',
         lbl_email: 'Correo electrónico',
+        lbl_community: 'Comunidad de apartamentos (opcional)',
+        community_ph: 'Empieza a escribir tu comunidad…',
         btn_submit: 'Envíame mi cotización',
         consent: 'Al enviar, aceptas que Anthony Gallant State Farm puede comunicarse contigo por texto y correo electrónico sobre tu cotización. Pueden aplicarse tarifas estándar. Sin spam.',
         success_h: '¡Listo! Revisa tu teléfono.',
@@ -229,6 +238,8 @@
         lbl_firstName: 'Prenon',
         lbl_phone: 'Telefòn selilè',
         lbl_email: 'Imèl',
+        lbl_community: 'Kominote apatman (opsyonèl)',
+        community_ph: 'Kòmanse tape non kominote w…',
         btn_submit: 'Voye pri m ban mwen',
         consent: 'Lè w voye sa, ou dakò pou Anthony Gallant State Farm kapab kontakte w pa tèks ak imèl konsènan pri w la. Tarif estanda kapab aplike. Pa gen spam.',
         success_h: 'Nou resevwa l — tcheke telefòn ou.',
@@ -249,6 +260,7 @@
     // Capture English defaults straight from the markup so the toggle can restore them.
     document.querySelectorAll('[data-i18n]').forEach(el => { I18N.en[el.getAttribute('data-i18n')] = el.textContent.trim(); });
     document.querySelectorAll('[data-i18n-html]').forEach(el => { I18N.en[el.getAttribute('data-i18n-html')] = el.innerHTML.trim(); });
+    document.querySelectorAll('[data-i18n-ph]').forEach(el => { I18N.en[el.getAttribute('data-i18n-ph')] = el.getAttribute('placeholder') || ''; });
 
     let CURRENT_LANG = 'en';
 
@@ -277,6 +289,10 @@
         const t = dict[el.getAttribute('data-i18n-html')];
         if (t != null) el.innerHTML = t;
       });
+      document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+        const t = dict[el.getAttribute('data-i18n-ph')];
+        if (t != null) el.setAttribute('placeholder', t);
+      });
       if (dict._title) document.title = dict._title;
       // toggle styling
       const setBtn = (id, on) => { const b = document.getElementById(id); if (b) b.className = 'hover:text-sf-red ' + (on ? 'text-sf-red' : 'text-sf-ink/45'); };
@@ -301,6 +317,18 @@
     document.getElementById('lang-en').addEventListener('click', () => applyLang('en'));
     document.getElementById('lang-es').addEventListener('click', () => applyLang('es'));
     document.getElementById('lang-ht').addEventListener('click', () => applyLang('ht'));
+
+    // Populate the apartment-community picker from the public complex list.
+    fetch('/api/complexes-public')
+      .then(r => (r.ok ? r.json() : { complexes: [] }))
+      .then(d => {
+        const dl = document.getElementById('complex-list');
+        if (!dl || !Array.isArray(d.complexes)) return;
+        dl.innerHTML = d.complexes
+          .map(c => `<option value="${String(c.name || '').replace(/"/g, '&quot;')}"></option>`)
+          .join('');
+      })
+      .catch(() => {});
 
     // ---------- form submit ----------
     const form = document.getElementById('lead-form');

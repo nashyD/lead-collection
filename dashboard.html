@@ -39,8 +39,18 @@
     .pill-bound     { background:#D1FAE5; color:#065F46; }
     .pill-lost      { background:#F3F4F6; color:#4B5563; }
     .tab[aria-pressed="true"] { background:#111; color:#fff; }
+    .dtab { color:rgba(17,17,17,0.55); }
+    .dtab:hover { color:#E22925; }
+    .dtab[aria-pressed="true"] { background:#111; color:#fff; }
     .row-saving { background-color:#FFFBEB; }
     .row-saved  { background-color:#ECFDF5; transition: background-color 1.2s ease; }
+    .cpill { display:inline-flex; align-items:center; padding:.125rem .5rem; border-radius:9999px; font-size:.7rem; font-weight:600; }
+    .cpill-not_started { background:#F3F4F6; color:#4B5563; }
+    .cpill-flyered     { background:#DBEAFE; color:#1E40AF; }
+    .cpill-contacted   { background:#FEF3C7; color:#92400E; }
+    .cpill-declined    { background:#FEE2E2; color:#B81E1B; }
+    .cpill-partner     { background:#D1FAE5; color:#065F46; }
+    .stale { color:#B81E1B; font-weight:700; }
   </style>
 </head>
 
@@ -75,8 +85,10 @@
       <div class="mx-auto max-w-[1500px] px-5 py-3 flex items-center justify-between">
         <div class="flex items-center gap-3">
           <span class="font-extrabold tracking-tight text-sf-red text-lg">State Farm<sup class="text-[10px]">&reg;</sup></span>
-          <span class="text-sm text-sf-ink/55 hidden sm:inline">·</span>
-          <span class="text-sm font-semibold text-sf-ink hidden sm:inline">Leads</span>
+          <nav class="flex items-center gap-1 ml-1">
+            <button id="tab-leads" type="button" class="dtab px-3 py-1.5 rounded-lg text-sm font-semibold" data-pane="leads">Leads</button>
+            <button id="tab-complexes" type="button" class="dtab px-3 py-1.5 rounded-lg text-sm font-semibold" data-pane="complexes">Complexes</button>
+          </nav>
         </div>
         <div class="flex items-center gap-3">
           <button id="settings-btn" class="text-sm font-semibold text-sf-ink/70 hover:text-sf-red">Settings</button>
@@ -86,35 +98,74 @@
       </div>
     </header>
 
-    <main class="mx-auto max-w-[1500px] px-5 py-6 space-y-6">
+    <main class="mx-auto max-w-[1500px] px-5 py-6">
 
-      <!-- Stats row -->
-      <section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div class="rounded-xl bg-white border border-black/10 p-4">
-          <div class="text-xs uppercase tracking-wide text-sf-ink/55 font-semibold">Total leads</div>
-          <div id="stat-total" class="mt-1 text-2xl font-extrabold">—</div>
-        </div>
-        <div class="rounded-xl bg-white border border-black/10 p-4">
-          <div class="text-xs uppercase tracking-wide text-sf-ink/55 font-semibold">This week</div>
-          <div id="stat-week" class="mt-1 text-2xl font-extrabold">—</div>
-        </div>
-        <div class="rounded-xl bg-white border border-black/10 p-4">
-          <div class="text-xs uppercase tracking-wide text-sf-ink/55 font-semibold">New (untouched)</div>
-          <div id="stat-new" class="mt-1 text-2xl font-extrabold text-sf-red">—</div>
-        </div>
-        <div class="rounded-xl bg-white border border-black/10 p-4">
-          <div class="text-xs uppercase tracking-wide text-sf-ink/55 font-semibold">Bound</div>
-          <div id="stat-bound" class="mt-1 text-2xl font-extrabold">—</div>
-        </div>
-      </section>
+      <!-- ===== LEADS PANE ===== -->
+      <div id="leads-pane" class="space-y-6">
+        <!-- Stats row -->
+        <section class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="rounded-xl bg-white border border-black/10 p-4">
+            <div class="text-xs uppercase tracking-wide text-sf-ink/55 font-semibold">Total leads</div>
+            <div id="stat-total" class="mt-1 text-2xl font-extrabold">—</div>
+          </div>
+          <div class="rounded-xl bg-white border border-black/10 p-4">
+            <div class="text-xs uppercase tracking-wide text-sf-ink/55 font-semibold">This week</div>
+            <div id="stat-week" class="mt-1 text-2xl font-extrabold">—</div>
+          </div>
+          <div class="rounded-xl bg-white border border-black/10 p-4">
+            <div class="text-xs uppercase tracking-wide text-sf-ink/55 font-semibold">New (untouched)</div>
+            <div id="stat-new" class="mt-1 text-2xl font-extrabold text-sf-red">—</div>
+          </div>
+          <div class="rounded-xl bg-white border border-black/10 p-4">
+            <div class="text-xs uppercase tracking-wide text-sf-ink/55 font-semibold">Bound</div>
+            <div id="stat-bound" class="mt-1 text-2xl font-extrabold">—</div>
+          </div>
+        </section>
 
-      <!-- Pipeline board -->
-      <section>
-        <div id="board" class="flex gap-4 overflow-x-auto pb-3">
-          <div class="text-sf-ink/55 py-10 px-1">Loading…</div>
-        </div>
-        <p class="text-xs text-sf-ink/45 mt-1">Change a card's <span class="font-semibold">Move to</span> dropdown to send it to another column.</p>
-      </section>
+        <!-- Pipeline board -->
+        <section>
+          <div id="board" class="flex gap-4 overflow-x-auto pb-3">
+            <div class="text-sf-ink/55 py-10 px-1">Loading…</div>
+          </div>
+          <p class="text-xs text-sf-ink/45 mt-1">Change a card's <span class="font-semibold">Move to</span> dropdown to send it to another column.</p>
+        </section>
+      </div>
+
+      <!-- ===== COMPLEXES PANE ===== -->
+      <div id="complexes-pane" class="hidden space-y-8">
+
+        <!-- Ranking: top complexes by business -->
+        <section>
+          <h2 class="text-lg font-extrabold tracking-tight">Top complexes by business</h2>
+          <p class="text-xs text-sf-ink/50 mb-3">Where your leads are coming from (self-reported on the form). Ranked by total leads, then policies bound.</p>
+          <div id="ranking" class="rounded-xl bg-white border border-black/10 overflow-hidden">
+            <div class="text-sf-ink/55 p-6 text-center text-sm">Loading…</div>
+          </div>
+        </section>
+
+        <!-- Canvassing checklist -->
+        <section>
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <div>
+              <h2 class="text-lg font-extrabold tracking-tight">Canvassing checklist</h2>
+              <p class="text-xs text-sf-ink/50">Every Gaston County complex — track visits, flyer drops, and last contact.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input id="complex-search" type="search" placeholder="Search complexes…"
+                class="rounded-lg border border-black/15 px-3 py-1.5 text-sm focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
+              <select id="complex-sort" class="rounded-lg border border-black/15 bg-white px-2.5 py-1.5 text-sm focus:outline-none focus:border-sf-red">
+                <option value="stale">Stalest first</option>
+                <option value="name">Name (A–Z)</option>
+                <option value="status">Status</option>
+                <option value="leads">Most leads</option>
+              </select>
+            </div>
+          </div>
+          <div id="complex-list-pane" class="space-y-2.5">
+            <div class="rounded-xl bg-white border border-black/10 p-6 text-center text-sf-ink/55 text-sm">Loading…</div>
+          </div>
+        </section>
+      </div>
 
     </main>
 
@@ -199,6 +250,44 @@
     </article>
   </template>
 
+  <!-- One canvassing row in the Complexes pane -->
+  <template id="complex-row-tpl">
+    <article class="complex-row rounded-xl bg-white border border-black/10 p-3.5 shadow-sm" data-complex-id="">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <h3 class="text-base font-bold cx-name truncate"></h3>
+          <div class="text-xs text-sf-ink/55 cx-addr truncate"></div>
+        </div>
+        <div class="text-right flex-shrink-0">
+          <div class="text-xs font-semibold text-sf-ink/70 cx-leads"></div>
+        </div>
+      </div>
+      <div class="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div>
+          <label class="block text-[10px] font-semibold text-sf-ink/45 uppercase tracking-wide mb-1">Status</label>
+          <select class="cx-status w-full rounded-lg border border-black/15 bg-white px-2.5 py-1.5 text-sm focus:outline-none focus:border-sf-red">
+            <option value="not_started">Not started</option>
+            <option value="flyered">Flyered</option>
+            <option value="contacted">Contacted</option>
+            <option value="partner">Partner</option>
+            <option value="declined">Declined</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-sf-ink/45 uppercase tracking-wide mb-1">Last contact</label>
+          <div class="flex items-center gap-2">
+            <span class="cx-last text-xs flex-1"></span>
+            <button type="button" class="cx-mark text-[11px] font-bold text-white bg-sf-red hover:bg-sf-redDark rounded-lg px-2.5 py-1.5 flex-shrink-0">Mark today</button>
+          </div>
+        </div>
+      </div>
+      <div class="mt-2.5 flex gap-2.5">
+        <input class="cx-by w-28 flex-shrink-0 rounded-lg border border-black/15 px-2.5 py-1.5 text-[13px] focus:outline-none focus:border-sf-red" placeholder="By (initials)" />
+        <textarea rows="1" class="cx-notes flex-1 rounded-lg border border-black/15 px-2.5 py-1.5 text-[13px] focus:outline-none focus:border-sf-red" placeholder="Notes…"></textarea>
+      </div>
+    </article>
+  </template>
+
   <script type="module">
     // ---------- views ----------
     const loginView = document.getElementById('view-login');
@@ -221,7 +310,15 @@
 
     // ---------- state ----------
     let leads = [];          // most recent fetch, unfiltered
+    let complexes = [];      // canvassing list
+    let cxSearch = '';
+    let cxSort = 'stale';
     let pollTimer = null;
+
+    const CANVASS_LABELS = {
+      not_started: 'Not started', flyered: 'Flyered', contacted: 'Contacted',
+      partner: 'Partner', declined: 'Declined',
+    };
 
     // ---------- bootstrap ----------
     showView('loading');
@@ -265,6 +362,20 @@
     });
 
     refreshBtn.addEventListener('click', () => fetchAndRender().catch(handleFetchError));
+
+    // ---------- tabs ----------
+    function showPane(pane) {
+      document.getElementById('leads-pane').classList.toggle('hidden', pane !== 'leads');
+      document.getElementById('complexes-pane').classList.toggle('hidden', pane !== 'complexes');
+      document.getElementById('tab-leads').setAttribute('aria-pressed', pane === 'leads');
+      document.getElementById('tab-complexes').setAttribute('aria-pressed', pane === 'complexes');
+    }
+    document.getElementById('tab-leads').addEventListener('click', () => showPane('leads'));
+    document.getElementById('tab-complexes').addEventListener('click', () => { showPane('complexes'); renderComplexes(); });
+    showPane('leads');
+
+    document.getElementById('complex-search').addEventListener('input', (e) => { cxSearch = e.target.value.toLowerCase(); renderComplexes(); });
+    document.getElementById('complex-sort').addEventListener('change', (e) => { cxSort = e.target.value; renderComplexes(); });
 
     // ---------- settings modal ----------
     const settingsModal  = document.getElementById('settings-modal');
@@ -323,9 +434,17 @@
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const data = await r.json();
       leads = Array.isArray(data.leads) ? data.leads : [];
+      await loadComplexes();
       showView('dash');
-      render();
+      renderAll();
       startPolling();
+    }
+
+    async function loadComplexes() {
+      try {
+        const r = await fetch('/api/complexes', { credentials: 'same-origin' });
+        if (r.ok) { const d = await r.json(); complexes = Array.isArray(d.complexes) ? d.complexes : []; }
+      } catch {}
     }
 
     function handleFetchError(err) {
@@ -341,7 +460,8 @@
           if (!r.ok) return;
           const data = await r.json();
           leads = Array.isArray(data.leads) ? data.leads : [];
-          render();
+          await loadComplexes();
+          renderAll();
         } catch {}
       }, 30000);
     }
@@ -444,7 +564,7 @@
         });
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         leads = leads.filter(x => x.id !== lead.id);
-        render(); // rebuilds the list without the deleted card + refreshes stats
+        renderAll(); // rebuilds the board without the deleted card + refreshes stats/ranking
       } catch (e) {
         console.error(e);
         card.classList.remove('row-saving');
@@ -467,8 +587,8 @@
         // update local copy in the leads array too
         const i = leads.findIndex(x => x.id === lead.id);
         if (i >= 0) leads[i] = lead;
-        // re-render: moves the card into its new column and refreshes counts
-        render();
+        // re-render: moves the card into its new column and refreshes counts + ranking
+        renderAll();
       } catch (e) {
         console.error(e);
         alert('Save failed. Try again.');
@@ -478,6 +598,139 @@
         setTimeout(() => card.classList.remove('row-saved'), 1200);
       }
     }
+
+    // ---------- complexes (ranking + canvassing) ----------
+    function renderAll() { render(); renderComplexes(); }
+
+    function leadCountsByComplex() {
+      const m = {}; let unlisted = 0;
+      for (const l of leads) {
+        if (l.complex_id) {
+          (m[l.complex_id] || (m[l.complex_id] = { total: 0, bound: 0 })).total++;
+          if (l.status === 'bound') m[l.complex_id].bound++;
+        } else if (l.complex_other) {
+          unlisted++;
+        }
+      }
+      return { m, unlisted };
+    }
+
+    function renderComplexes() {
+      const { m, unlisted } = leadCountsByComplex();
+
+      // ----- ranking: top complexes by business -----
+      const ranked = complexes
+        .map(c => ({ c, ...(m[c.id] || { total: 0, bound: 0 }) }))
+        .filter(x => x.total > 0)
+        .sort((a, b) => b.total - a.total || b.bound - a.bound);
+      const rankEl = document.getElementById('ranking');
+      if (ranked.length === 0) {
+        rankEl.innerHTML = '<div class="p-6 text-center text-sm text-sf-ink/45">No attributed leads yet. Once renters pick their community on the form, the leaders show up here.</div>';
+      } else {
+        const rows = ranked.map((x, i) => `
+          <tr class="border-t border-black/5">
+            <td class="px-4 py-2 text-sf-ink/40 text-sm w-8">${i + 1}</td>
+            <td class="px-4 py-2 font-semibold text-sm">${esc(x.c.name)}${x.c.city ? ` <span class="text-sf-ink/45 font-normal">· ${esc(x.c.city)}</span>` : ''}</td>
+            <td class="px-4 py-2 text-right font-bold">${x.total}</td>
+            <td class="px-4 py-2 text-right font-bold text-emerald-700">${x.bound}</td>
+          </tr>`).join('');
+        rankEl.innerHTML = `
+          <table class="w-full text-sm">
+            <thead><tr class="text-[10px] uppercase tracking-wide text-sf-ink/50">
+              <th class="px-4 py-2 text-left w-8">#</th><th class="px-4 py-2 text-left">Complex</th>
+              <th class="px-4 py-2 text-right">Leads</th><th class="px-4 py-2 text-right">Bound</th>
+            </tr></thead><tbody>${rows}</tbody>
+          </table>
+          ${unlisted ? `<div class="px-4 py-2 text-xs text-sf-ink/45 border-t border-black/5">+ ${unlisted} lead${unlisted === 1 ? '' : 's'} from communities typed in but not on the list.</div>` : ''}`;
+      }
+
+      // ----- canvassing list -----
+      const listEl = document.getElementById('complex-list-pane');
+      if (complexes.length === 0) {
+        listEl.innerHTML = '<div class="rounded-xl bg-white border border-black/10 p-6 text-center text-sf-ink/55 text-sm">No complexes yet. Seed the list from Google Places (the seed script), then they appear here.</div>';
+        return;
+      }
+      let items = complexes.slice();
+      if (cxSearch) items = items.filter(c => `${c.name || ''} ${c.city || ''} ${c.address || ''}`.toLowerCase().includes(cxSearch));
+      const staleness = c => c.last_contacted_at ? Date.now() - new Date(c.last_contacted_at).getTime() : Infinity;
+      const order = { not_started: 0, flyered: 1, contacted: 2, partner: 3, declined: 4 };
+      items.sort((a, b) => {
+        if (cxSort === 'name')   return (a.name || '').localeCompare(b.name || '');
+        if (cxSort === 'status') return ((order[a.canvass_status] ?? 9) - (order[b.canvass_status] ?? 9)) || (a.name || '').localeCompare(b.name || '');
+        if (cxSort === 'leads')  return ((m[b.id]?.total) || 0) - ((m[a.id]?.total) || 0);
+        return staleness(b) - staleness(a); // stalest first
+      });
+      if (items.length === 0) {
+        listEl.innerHTML = '<div class="rounded-xl bg-white border border-black/10 p-6 text-center text-sf-ink/55 text-sm">No complexes match your search.</div>';
+        return;
+      }
+      const tpl = document.getElementById('complex-row-tpl');
+      listEl.innerHTML = '';
+      for (const c of items) {
+        const node = tpl.content.firstElementChild.cloneNode(true);
+        renderComplexRow(node, c, m[c.id]);
+        listEl.appendChild(node);
+      }
+    }
+
+    function renderComplexRow(row, c, counts) {
+      row.dataset.complexId = c.id;
+      row.querySelector('.cx-name').textContent = c.name || '(unnamed)';
+      row.querySelector('.cx-addr').textContent = [c.address, c.city].filter(Boolean).join(', ');
+      row.querySelector('.cx-leads').textContent = counts ? `${counts.total} lead${counts.total === 1 ? '' : 's'}${counts.bound ? ` · ${counts.bound} bound` : ''}` : '';
+
+      const sel = row.querySelector('.cx-status');
+      sel.value = c.canvass_status || 'not_started';
+      sel.addEventListener('change', () => saveComplex(c, { canvass_status: sel.value }));
+
+      const last = row.querySelector('.cx-last');
+      const days = c.last_contacted_at ? Math.floor((Date.now() - new Date(c.last_contacted_at).getTime()) / 86400000) : null;
+      if (c.last_contacted_at) {
+        last.textContent = relTime(c.last_contacted_at) + (c.last_contacted_by ? ` · ${c.last_contacted_by}` : '');
+        if (days >= 30) last.classList.add('stale');
+      } else {
+        last.textContent = 'Never';
+        last.classList.add('stale');
+      }
+
+      const by = row.querySelector('.cx-by');
+      by.value = c.last_contacted_by || '';
+      row.querySelector('.cx-mark').addEventListener('click', () => markContacted(c, by.value));
+
+      const notes = row.querySelector('.cx-notes');
+      notes.value = c.notes || '';
+      let nDirty = false;
+      notes.addEventListener('input', () => { nDirty = true; });
+      notes.addEventListener('blur', () => { if (nDirty) { nDirty = false; saveComplex(c, { notes: notes.value }); } });
+      let bDirty = false;
+      by.addEventListener('input', () => { bDirty = true; });
+      by.addEventListener('blur', () => { if (bDirty) { bDirty = false; saveComplex(c, { last_contacted_by: by.value }); } });
+    }
+
+    async function saveComplex(complex, patch) {
+      try {
+        const r = await fetch('/api/complexes', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ id: complex.id, ...patch }),
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const d = await r.json();
+        if (d.complex) {
+          Object.assign(complex, d.complex);
+          const i = complexes.findIndex(x => x.id === complex.id);
+          if (i >= 0) complexes[i] = complex;
+        }
+        renderComplexes();
+      } catch (e) { console.error(e); alert('Save failed. Try again.'); }
+    }
+
+    function markContacted(complex, by) {
+      saveComplex(complex, { mark_contacted: true, last_contacted_by: by || complex.last_contacted_by || '' });
+    }
+
+    function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
     // ---------- helpers ----------
     function showView(which) {
