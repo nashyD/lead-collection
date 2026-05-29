@@ -32,9 +32,10 @@ async function searchCity(city) {
   const out = [];
   let pageToken = null;
   for (let page = 0; page < MAX_PAGES_PER_CITY; page++) {
-    const body = pageToken
-      ? { pageToken }
-      : { textQuery: `apartments in ${city}, North Carolina` };
+    // The Places API (New) requires paging requests to repeat the original
+    // params (textQuery) alongside the pageToken — token-only is rejected.
+    const body = { textQuery: `apartments in ${city}, North Carolina` };
+    if (pageToken) body.pageToken = pageToken;
     const resp = await fetch('https://places.googleapis.com/v1/places:searchText', {
       method: 'POST',
       headers: {
