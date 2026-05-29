@@ -1,18 +1,19 @@
 // /api/lead — Vercel serverless function
 // Receives form submissions from the landing page, persists to Supabase, and sends two
-// emails via Resend: a confirmation to the lead and a notification to the office. Each
+// emails via MailerSend: a confirmation to the lead and a notification to the office. Each
 // step is independent and fail-soft — a failure in one never blocks the others.
 //
 // Env vars (email is skipped if its vars are missing):
 //   SUPABASE_URL                 e.g. https://abcd.supabase.co
 //   SUPABASE_SERVICE_ROLE_KEY    server-only key — never expose to the browser
-//   RESEND_API_KEY               from resend.com (free tier: 3,000 emails/mo)
-//   FROM_EMAIL                   e.g. leads@gallantrenters.com (must be a domain verified in Resend)
+//   MAILERSEND_API_KEY           from mailersend.com (free tier: 3,000 emails/mo)
+//   FROM_EMAIL                   e.g. leads@gallantrenters.com (must be a domain verified in MailerSend)
 //
 // Office notification recipients are managed from the dashboard Settings panel and stored
 // in the Supabase `settings` table (key = notify_emails). No env var needed for them.
 
 const OFFICE_PHONE = '(704) 853-8001';
+const FROM_NAME = 'Anthony Gallant State Farm';
 
 export default async function handler(req, res) {
   // CORS (in case the form is ever hosted on a different domain)
@@ -83,8 +84,8 @@ export default async function handler(req, res) {
     }
   }
 
-  // Email notifications via Resend. Both are independent and fail-soft.
-  if (process.env.RESEND_API_KEY && process.env.FROM_EMAIL) {
+  // Email notifications via MailerSend. Both are independent and fail-soft.
+  if (process.env.MAILERSEND_API_KEY && process.env.FROM_EMAIL) {
     await Promise.all([
       // 1) Confirmation to the lead.
       emailLeadConfirmation(lead).catch(e => console.error('email_lead_confirmation_failed', e)),
@@ -96,7 +97,7 @@ export default async function handler(req, res) {
         .catch(e => console.error('email_office_failed', e)),
     ]);
   } else {
-    console.log('resend_not_configured_email_skipped');
+    console.log('mailersend_not_configured_email_skipped');
   }
 
   return res.status(200).json({ ok: true });
@@ -146,7 +147,7 @@ async function getNotifyRecipients() {
     .filter(e => /.+@.+\..+/.test(e));
 }
 
-// --- Email (Resend) ---------------------------------------------------------
+// --- Email (MailerSend) -----------------------------------------------------
 
 async function emailLeadConfirmation(lead) {
   const subject = 'Thanks — we got your renters insurance request';
@@ -162,11 +163,11 @@ async function emailLeadConfirmation(lead) {
         Need us sooner? Call <a href="tel:+17048538001" style="color:#E22925;font-weight:600;">${OFFICE_PHONE}</a>.
       </p>
       <p style="font-size:13px;color:#666;margin-top:24px;">
-        Anthony Gallant, State Farm Agent · Charlotte, NC<br/>
+        Anthony Gallant, State Farm Agent · Gastonia, NC<br/>
         State Farm Mutual Automobile Insurance Company, Bloomington, IL. Coverage subject to terms, conditions, and availability.
       </p>
     </div>`;
-  await resendSend({ to: [lead.email], subject, html, replyTo: process.env.FROM_EMAIL });
+  await mailersendSend({ to: [lead.email], subject, html, replyTo: process.env.FROM_EMAIL });
 }
 
 async function emailOffice(lead, recipients) {
@@ -183,25 +184,29 @@ async function emailOffice(lead, recipients) {
       </table>
       <p style="margin:18px 0 0;color:#666;font-size:12px;">Speed-to-lead matters — aim to reach out within a few minutes.</p>
     </div>`;
-  await resendSend({ to: recipients, subject, html, replyTo: lead.email });
+  await mailersendSend({ to: recipients, subject, html, replyTo: lead.email });
 }
 
-async function resendSend({ to, subject, html, replyTo }) {
-  const resp = await fetch('https://api.resend.com/emails', {
+async function mailersendSend({ to, subject, html, replyTo }) {
+  // MailerSend expects recipients as [{ email }] and from as { email, name }.
+  const recipients = (Array.isArray(to) ? to : [to]).map(email => ({ email }));
+  const payload = {
+    from: { email: process.env.FROM_EMAIL, name: FROM_NAME },
+    to: recipients,
+    subject,
+    html,
+  };
+  if (replyTo) payload.reply_to = { email: replyTo };
+  const resp = await fetch('https://api.mailersend.com/v1/email', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+      'Authorization': `Bearer ${process.env.MAILERSEND_API_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      from: process.env.FROM_EMAIL,
-      to,
-      subject,
-      html,
-      reply_to: replyTo,
-    }),
+    body: JSON.stringify(payload),
   });
-  if (!resp.ok) throw new Error(`Resend ${resp.status}: ${await resp.text()}`);
+  // MailerSend returns 202 Accepted on success.
+  if (!resp.ok) throw new Error(`MailerSend ${resp.status}: ${await resp.text()}`);
 }
 
 function escapeHtml(s) {
