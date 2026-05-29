@@ -55,6 +55,8 @@
           <button id="lang-en" type="button" class="hover:text-sf-red">EN</button>
           <span class="text-sf-ink/30">·</span>
           <button id="lang-es" type="button" class="hover:text-sf-red">ES</button>
+          <span class="text-sf-ink/30">·</span>
+          <button id="lang-ht" type="button" class="hover:text-sf-red">HT</button>
         </div>
         <a href="tel:+17048538001" class="text-sm font-semibold text-sf-ink hover:text-sf-red">(704) 853-8001</a>
       </div>
@@ -214,6 +216,34 @@
         agent_role: 'Agente de State Farm · Gastonia, NC',
         footer: 'Anthony Gallant, Agente de State Farm. State Farm Mutual Automobile Insurance Company, Bloomington, IL. La cobertura está sujeta a términos, condiciones y disponibilidad.',
       },
+      // Haitian Creole (Kreyòl Ayisyen). DRAFT — must be reviewed by a native
+      // speaker before public use, especially the consent line.
+      ht: {
+        _title: 'Asirans pou Lokatè apati $5.50/mwa — Anthony Gallant State Farm',
+        _sending: 'Ap voye…',
+        _fillAll: 'Tanpri ranpli tout chan yo.',
+        _err: 'Gen yon pwoblèm ki rive. Tanpri rele (704) 853-8001.',
+        eyebrow: 'Asirans pou Lokatè',
+        hero: 'Asire nan 5 minit.<br/><span class="text-sf-red">Apati $5.50/mwa.</span>',
+        subhead: 'Kontra lwaye w la pwobableman mande asirans pou lokatè. M ap voye yon pri ba ou byen vit, san pèdi tan, san presyon.',
+        lbl_firstName: 'Prenon',
+        lbl_phone: 'Telefòn selilè',
+        lbl_email: 'Imèl',
+        btn_submit: 'Voye pri m ban mwen',
+        consent: 'Lè w voye sa, ou dakò pou Anthony Gallant State Farm kapab kontakte w pa tèks ak imèl konsènan pri w la. Tarif estanda kapab aplike. Pa gen spam.',
+        success_h: 'Nou resevwa l — tcheke telefòn ou.',
+        success_p: 'Anthony ap voye yon mesaj ba ou nan 5 minit pandan lè biwo a louvri.',
+        pillar1: 'Pwoteksyon responsablite',
+        pillar2: 'Pou w jwenn kouvèti',
+        pillar3: 'Sipò pou reklamasyon',
+        covered_h: 'Sa ki kouvri',
+        cov1: '<strong class="text-sf-ink">Bagay ou yo.</strong> Televizyon, rad, mèb, laptop, konsòl jwèt, bisiklèt.',
+        cov2: '<strong class="text-sf-ink">Domaj akòz dife, lafimen, dlo, vòl, ak van.</strong>',
+        cov3: '<strong class="text-sf-ink">$300,000+ responsablite</strong> si yon moun blese nan apatman w oswa ou domaje bilding lan san fè espre.',
+        cov4: '<strong class="text-sf-ink">Pèt itilizasyon.</strong> Frè otèl si apatman w pa ka abite ankò.',
+        agent_role: 'Ajan State Farm · Gastonia, NC',
+        footer: 'Anthony Gallant, Ajan State Farm. State Farm Mutual Automobile Insurance Company, Bloomington, IL. Kouvèti a sijè a tèm, kondisyon, ak disponiblite.',
+      },
     };
 
     // Capture English defaults straight from the markup so the toggle can restore them.
@@ -225,11 +255,14 @@
     function detectLang() {
       const p = new URLSearchParams(location.search);
       const explicit = (p.get('lang') || '').toLowerCase();
-      if (explicit === 'es' || explicit === 'en') return explicit;
-      const camp = (p.get('utm_campaign') || '').toLowerCase();      // e.g. renters_es / renters_en
+      if (['en','es','ht'].includes(explicit)) return explicit;
+      const camp = (p.get('utm_campaign') || '').toLowerCase();      // e.g. renters_es / renters_ht
+      if (camp.includes('_ht') || camp.endsWith('ht')) return 'ht';
       if (camp.includes('_es') || camp.endsWith('es')) return 'es';
       if (camp.includes('_en') || camp.endsWith('en')) return 'en';
-      if ((navigator.language || '').toLowerCase().startsWith('es')) return 'es';  // direct visits
+      const nav = (navigator.language || '').toLowerCase();          // direct visits
+      if (nav.startsWith('ht')) return 'ht';
+      if (nav.startsWith('es')) return 'es';
       return 'en';
     }
 
@@ -246,9 +279,10 @@
       });
       if (dict._title) document.title = dict._title;
       // toggle styling
-      const enBtn = document.getElementById('lang-en'), esBtn = document.getElementById('lang-es');
-      enBtn.className = 'hover:text-sf-red ' + (lang === 'en' ? 'text-sf-red' : 'text-sf-ink/45');
-      esBtn.className = 'hover:text-sf-red ' + (lang === 'es' ? 'text-sf-red' : 'text-sf-ink/45');
+      const setBtn = (id, on) => { const b = document.getElementById(id); if (b) b.className = 'hover:text-sf-red ' + (on ? 'text-sf-red' : 'text-sf-ink/45'); };
+      setBtn('lang-en', lang === 'en');
+      setBtn('lang-es', lang === 'es');
+      setBtn('lang-ht', lang === 'ht');
       CURRENT_LANG = lang;
     }
 
@@ -266,6 +300,7 @@
 
     document.getElementById('lang-en').addEventListener('click', () => applyLang('en'));
     document.getElementById('lang-es').addEventListener('click', () => applyLang('es'));
+    document.getElementById('lang-ht').addEventListener('click', () => applyLang('ht'));
 
     // ---------- form submit ----------
     const form = document.getElementById('lead-form');
