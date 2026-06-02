@@ -34,6 +34,15 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true });
   }
 
+  // Bot check (Cloudflare Turnstile). Only enforced once TURNSTILE_SECRET_KEY is
+  // set, so the form keeps working before keys are added — but it is UNPROTECTED
+  // until then. Set the key in Vercel before launch.
+  if (process.env.TURNSTILE_SECRET_KEY) {
+    const token = String(body.cf_turnstile_token || body['cf-turnstile-response'] || '');
+    const human = await verifyTurnstile(token, req.headers['x-forwarded-for']);
+    if (!human) return res.status(403).json({ error: 'Verification failed' });
+  }
+
   const firstName = String(body.firstName || '').trim().slice(0, 80);
   const phoneRaw  = String(body.phone || '').trim().slice(0, 40);
   const email     = String(body.email || '').trim().toLowerCase().slice(0, 200);
@@ -76,13 +85,22 @@ export default async function handler(req, res) {
     ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '',
   };
 
-  // ALWAYS log so we can see it in Vercel function logs even if no integrations set.
-  console.log('NEW_LEAD', JSON.stringify(lead));
+  // Non-PII breadcrumb on every submission. Full lead detail is only logged on
+  // the all-sinks-failed path below, as a last-resort recovery trail — we don't
+  // want customer name/phone/email/IP sitting in function logs on every request.
+  console.log('lead_received', JSON.stringify({ source, campaign, hasCommunity: !!community }));
 
-  // Persist to Supabase first (so the dashboard always sees the lead). Fail-soft.
+  // Capture the lead in at least one durable place. Each sink is fail-soft, but
+  // if NONE succeeds we must not tell the visitor "we got it" (a paid lead is
+  // too expensive to silently drop).
+  let persisted = false;       // saved to Supabase — the dashboard's source of truth
+  let officeNotified = false;  // office got an email alert — the human backstop
+
+  // Persist to Supabase first (so the dashboard always sees the lead).
   if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
     try {
       await saveLeadToSupabase(lead);
+      persisted = true;
     } catch (e) {
       console.error('supabase_insert_failed', e);
     }
@@ -91,17 +109,25 @@ export default async function handler(req, res) {
   // Email notifications via MailerSend. Both are independent and fail-soft.
   if (process.env.MAILERSEND_API_KEY && process.env.FROM_EMAIL) {
     await Promise.all([
-      // 1) Confirmation to the lead.
+      // 1) Confirmation to the lead — best-effort, never counts as "captured".
       emailLeadConfirmation(lead).catch(e => console.error('email_lead_confirmation_failed', e)),
       // 2) Notification to the office recipient list (managed in the dashboard).
       getNotifyRecipients()
-        .then(recips => recips.length
-          ? emailOffice(lead, recips)
-          : console.log('no_notify_recipients_configured'))
+        .then(recips => {
+          if (!recips.length) return console.log('no_notify_recipients_configured');
+          return emailOffice(lead, recips).then(() => { officeNotified = true; });
+        })
         .catch(e => console.error('email_office_failed', e)),
     ]);
   } else {
     console.log('mailersend_not_configured_email_skipped');
+  }
+
+  // Nowhere durable captured it — fail loudly so the visitor sees the "call us"
+  // fallback instead of a false success.
+  if (!persisted && !officeNotified) {
+    console.error('LEAD_NOT_CAPTURED', JSON.stringify(lead));
+    return res.status(502).json({ error: 'Could not save your request' });
   }
 
   return res.status(200).json({ ok: true });
@@ -241,4 +267,31 @@ function escapeHtml(s) {
   return String(s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// --- Turnstile -------------------------------------------------------------
+
+// Verify a Turnstile token with Cloudflare's siteverify endpoint. Fails closed
+// (returns false) on a missing token or any error — abuse protection should not
+// be bypassable by inducing an error.
+async function verifyTurnstile(token, ip) {
+  if (!token) return false;
+  try {
+    const params = new URLSearchParams({
+      secret: process.env.TURNSTILE_SECRET_KEY,
+      response: token,
+    });
+    if (ip) params.set('remoteip', String(ip).split(',')[0].trim());
+    const resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params,
+    });
+    if (!resp.ok) return false;
+    const data = await resp.json();
+    return data.success === true;
+  } catch (e) {
+    console.error('turnstile_verify_failed', e);
+    return false;
+  }
 }
