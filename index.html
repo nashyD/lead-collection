@@ -115,6 +115,9 @@
             <label>Website<input type="text" name="website" tabindex="-1" autocomplete="off" /></label>
           </div>
 
+          <!-- Cloudflare Turnstile — renders only when a site key is configured -->
+          <div id="turnstile-container" class="empty:hidden"></div>
+
           <button id="submit-btn" type="submit"
             class="w-full rounded-lg bg-sf-red hover:bg-sf-redDark active:bg-sf-redDark text-white font-bold py-3.5 text-base transition disabled:opacity-60 disabled:cursor-not-allowed"
             data-i18n="btn_submit">
@@ -199,9 +202,14 @@
         _sending: 'Sending…',
         _fillAll: 'Please fill out all fields.',
         _err: 'Something went wrong. Please call (704) 853-8001 instead.',
+        _verify: 'Please complete the verification below.',
       },
       es: {
         _title: 'Seguro para inquilinos desde $5.50/mes — Anthony Gallant State Farm',
+        _sending: 'Enviando…',
+        _fillAll: 'Por favor completa todos los campos.',
+        _err: 'Algo salió mal. Por favor llama al (704) 853-8001.',
+        _verify: 'Por favor completa la verificación.',
         eyebrow: 'Seguro para inquilinos',
         hero: 'Asegurado en 5 minutos.<br/><span class="text-sf-red">Desde $5.50/mes.</span>',
         subhead: 'Tu contrato probablemente requiere seguro para inquilinos. Te enviaré una cotización rápido, sin llamadas perdidas ni presión.',
@@ -232,6 +240,7 @@
         _sending: 'Ap voye…',
         _fillAll: 'Tanpri ranpli tout chan yo.',
         _err: 'Gen yon pwoblèm ki rive. Tanpri rele (704) 853-8001.',
+        _verify: 'Tanpri konplete verifikasyon an.',
         eyebrow: 'Asirans pou Lokatè',
         hero: 'Asire nan 5 minit.<br/><span class="text-sf-red">Apati $5.50/mwa.</span>',
         subhead: 'Kontra lwaye w la pwobableman mande asirans pou lokatè. M ap voye yon pri ba ou byen vit, san pèdi tan, san presyon.',
@@ -330,6 +339,33 @@
       })
       .catch(() => {});
 
+    // ---------- bot protection (Cloudflare Turnstile) ----------
+    // Site key comes from /api/config; the widget renders only when one is set,
+    // so the form still works while Turnstile isn't configured yet.
+    let turnstileToken = '';
+    let turnstileRequired = false;
+    fetch('/api/config')
+      .then(r => (r.ok ? r.json() : {}))
+      .then(cfg => {
+        if (!cfg || !cfg.turnstileSiteKey) return;
+        turnstileRequired = true;
+        window.__tsLoad = () => {
+          try {
+            turnstile.render('#turnstile-container', {
+              sitekey: cfg.turnstileSiteKey,
+              callback: t => { turnstileToken = t; },
+              'expired-callback': () => { turnstileToken = ''; },
+              'error-callback': () => { turnstileToken = ''; },
+            });
+          } catch (e) { console.error(e); }
+        };
+        const s = document.createElement('script');
+        s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=__tsLoad&render=explicit';
+        s.async = true; s.defer = true;
+        document.head.appendChild(s);
+      })
+      .catch(() => {});
+
     // ---------- form submit ----------
     const form = document.getElementById('lead-form');
     const submitBtn = document.getElementById('submit-btn');
@@ -356,6 +392,14 @@
         return;
       }
 
+      // Require a Turnstile token when the widget is active.
+      if (turnstileRequired && !turnstileToken) {
+        errorBox.textContent = L._verify;
+        errorBox.classList.remove('hidden');
+        return;
+      }
+      if (turnstileToken) payload.cf_turnstile_token = turnstileToken;
+
       submitBtn.disabled = true;
       submitBtn.textContent = L._sending;
 
@@ -371,6 +415,11 @@
         // if (window.fbq) fbq('track', 'Lead');
       } catch (err) {
         console.error(err);
+        // Turnstile tokens are single-use — reset for a fresh one on retry.
+        if (turnstileRequired && window.turnstile) {
+          try { turnstile.reset(); } catch (e) {}
+          turnstileToken = '';
+        }
         submitBtn.disabled = false;
         submitBtn.textContent = L.btn_submit;
         errorBox.textContent = L._err;
