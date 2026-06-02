@@ -276,6 +276,10 @@
           <a class="call-link text-sf-red font-semibold hover:underline" href="">Call</a>
         </div>
         <div class="truncate"><a class="email-link text-sf-ink/75 hover:text-sf-red text-[13px]" href=""></a></div>
+        <div class="complex-line hidden text-[11px] text-sf-ink/60 truncate">
+          <svg viewBox="0 0 24 24" class="inline w-3 h-3 align-text-bottom text-sf-red" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
+          <span class="complex-name"></span>
+        </div>
         <div class="text-[11px] text-sf-ink/50 source-line"></div>
       </div>
       <div class="mt-2.5">
@@ -750,6 +754,18 @@
 
       const src = [lead.source, lead.medium, lead.campaign].filter(Boolean).join(' / ') || 'direct';
       card.querySelector('.source-line').textContent = src;
+
+      // Apartment community the lead picked on the form: resolve complex_id to its
+      // name (falling back to the typed-in free text), else hide the line.
+      const complexName = (lead.complex_id && (complexes.find(c => c.id === lead.complex_id) || {}).name)
+        || lead.complex_other || '';
+      const complexLine = card.querySelector('.complex-line');
+      if (complexName) {
+        card.querySelector('.complex-name').textContent = complexName;
+        complexLine.classList.remove('hidden');
+      } else {
+        complexLine.classList.add('hidden');
+      }
 
       const sel = card.querySelector('.status-select');
       sel.value = lead.status;
