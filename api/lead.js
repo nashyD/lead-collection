@@ -1,13 +1,13 @@
 // /api/lead — Vercel serverless function
 // Receives form submissions from the landing page, persists to Supabase, and sends two
-// emails via MailerSend: a confirmation to the lead and a notification to the office. Each
+// emails via Resend: a confirmation to the lead and a notification to the office. Each
 // step is independent and fail-soft — a failure in one never blocks the others.
 //
 // Env vars (email is skipped if its vars are missing):
 //   SUPABASE_URL                 e.g. https://abcd.supabase.co
 //   SUPABASE_SERVICE_ROLE_KEY    server-only key — never expose to the browser
-//   MAILERSEND_API_KEY           from mailersend.com (free tier: 3,000 emails/mo)
-//   FROM_EMAIL                   e.g. leads@gallantrenters.com (must be a domain verified in MailerSend)
+//   RESEND_API_KEY           from resend.com (free tier: 3,000/mo, 100/day)
+//   FROM_EMAIL                   e.g. leads@gallantrenters.com (must be a domain verified in Resend)
 //
 // Office notification recipients are managed from the dashboard Settings panel and stored
 // in the Supabase `settings` table (key = notify_emails). No env var needed for them.
@@ -106,8 +106,8 @@ export default async function handler(req, res) {
     }
   }
 
-  // Email notifications via MailerSend. Both are independent and fail-soft.
-  if (process.env.MAILERSEND_API_KEY && process.env.FROM_EMAIL) {
+  // Email notifications via Resend. Both are independent and fail-soft.
+  if (process.env.RESEND_API_KEY && process.env.FROM_EMAIL) {
     await Promise.all([
       // 1) Confirmation to the lead — best-effort, never counts as "captured".
       emailLeadConfirmation(lead).catch(e => console.error('email_lead_confirmation_failed', e)),
@@ -120,7 +120,7 @@ export default async function handler(req, res) {
         .catch(e => console.error('email_office_failed', e)),
     ]);
   } else {
-    console.log('mailersend_not_configured_email_skipped');
+    console.log('resend_not_configured_email_skipped');
   }
 
   // Nowhere durable captured it — fail loudly so the visitor sees the "call us"
@@ -201,7 +201,7 @@ async function getNotifyRecipients() {
     .filter(e => /.+@.+\..+/.test(e));
 }
 
-// --- Email (MailerSend) -----------------------------------------------------
+// --- Email (Resend) -----------------------------------------------------
 
 async function emailLeadConfirmation(lead) {
   const subject = 'Thanks — we got your renters insurance request';
@@ -221,7 +221,7 @@ async function emailLeadConfirmation(lead) {
         State Farm Mutual Automobile Insurance Company, Bloomington, IL. Coverage subject to terms, conditions, and availability.
       </p>
     </div>`;
-  await mailersendSend({ to: [lead.email], subject, html, replyTo: process.env.FROM_EMAIL });
+  await resendSend({ to: [lead.email], subject, html, replyTo: process.env.FROM_EMAIL });
 }
 
 async function emailOffice(lead, recipients) {
@@ -238,29 +238,40 @@ async function emailOffice(lead, recipients) {
       </table>
       <p style="margin:18px 0 0;color:#666;font-size:12px;">Speed-to-lead matters — aim to reach out within a few minutes.</p>
     </div>`;
-  await mailersendSend({ to: recipients, subject, html, replyTo: lead.email });
+  await resendSend({ to: recipients, subject, html, replyTo: lead.email });
 }
 
-async function mailersendSend({ to, subject, html, replyTo }) {
-  // MailerSend expects recipients as [{ email }] and from as { email, name }.
-  const recipients = (Array.isArray(to) ? to : [to]).map(email => ({ email }));
+async function resendSend({ to, subject, html, replyTo }) {
+  // Resend wants `to` as an array of email strings and `from` as "Name <email>".
+  const recipients = Array.isArray(to) ? to : [to];
   const payload = {
-    from: { email: process.env.FROM_EMAIL, name: FROM_NAME },
+    from: `${FROM_NAME} <${process.env.FROM_EMAIL}>`,
     to: recipients,
     subject,
     html,
   };
-  if (replyTo) payload.reply_to = { email: replyTo };
-  const resp = await fetch('https://api.mailersend.com/v1/email', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${process.env.MAILERSEND_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  });
-  // MailerSend returns 202 Accepted on success.
-  if (!resp.ok) throw new Error(`MailerSend ${resp.status}: ${await resp.text()}`);
+  if (replyTo) payload.reply_to = replyTo;
+
+  // Two emails fire per lead and Resend's free tier rate-limits at ~2 req/sec, so
+  // a burst can return 429 and silently drop one. Retry 429/5xx with short backoff.
+  // (A 403 — e.g. an unverified sending domain — is NOT retried; it throws so the
+  //  real reason lands in the logs.)
+  for (let attempt = 0; ; attempt++) {
+    const resp = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+    if (resp.ok) return; // Resend returns 200 with { id } on success.
+    if ((resp.status === 429 || resp.status >= 500) && attempt < 2) {
+      await new Promise(r => setTimeout(r, 500 * (attempt + 1)));
+      continue;
+    }
+    throw new Error(`Resend ${resp.status}: ${await resp.text()}`);
+  }
 }
 
 function escapeHtml(s) {
