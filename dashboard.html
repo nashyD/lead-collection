@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Leads · Anthony Gallant State Farm</title>
   <meta name="robots" content="noindex,nofollow" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -155,14 +156,22 @@
               <button id="next-btn" class="rounded-lg bg-sf-red hover:bg-sf-redDark text-white font-bold px-3.5 py-2.5 text-sm transition flex-shrink-0">Next complex</button>
               <input id="complex-search" type="search" placeholder="Search complexes…"
                 class="flex-1 min-w-[140px] rounded-lg border border-black/15 px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
-              <select id="complex-sort" class="rounded-lg border border-black/15 bg-white px-2.5 py-2.5 text-base sm:text-sm focus:outline-none focus:border-sf-red">
-                <option value="stale">Stalest first</option>
-                <option value="name">Name (A–Z)</option>
-                <option value="status">Status</option>
-                <option value="leads">Most leads</option>
+              <select id="complex-filter" aria-label="Filter by status" class="rounded-lg border border-black/15 bg-white px-2.5 py-2.5 text-base sm:text-sm focus:outline-none focus:border-sf-red">
+                <option value="all">All statuses</option>
+                <option value="not_started">Not started</option>
+                <option value="flyered">Flyered</option>
+                <option value="contacted">Contacted</option>
+                <option value="partner">Partner</option>
+                <option value="declined">Declined</option>
+              </select>
+              <select id="complex-sort" aria-label="Sort by" class="rounded-lg border border-black/15 bg-white px-2.5 py-2.5 text-base sm:text-sm focus:outline-none focus:border-sf-red">
+                <option value="stale">Sort: Stalest</option>
+                <option value="name">Sort: A–Z</option>
+                <option value="leads">Sort: Most leads</option>
               </select>
             </div>
           </div>
+          <div id="complex-count" class="text-xs font-semibold text-sf-ink/55 mb-2"></div>
           <div id="complex-list-pane" class="space-y-2.5">
             <div class="rounded-xl bg-white border border-black/10 p-6 text-center text-sf-ink/55 text-sm">Loading…</div>
           </div>
@@ -367,6 +376,7 @@
     let complexes = [];      // canvassing list
     let cxSearch = '';
     let cxSort = 'stale';
+    let cxFilter = 'all';
     let pollTimer = null;
     let mobileCol = 'new';   // which status column shows on mobile
 
@@ -374,6 +384,7 @@
       not_started: 'Not started', flyered: 'Flyered', contacted: 'Contacted',
       partner: 'Partner', declined: 'Declined',
     };
+    const FILTER_PHRASE = { not_started: 'not started', flyered: 'flyered', contacted: 'contacted', partner: 'partnered', declined: 'declined' };
 
     // ---------- bootstrap ----------
     showView('loading');
@@ -431,6 +442,7 @@
 
     document.getElementById('complex-search').addEventListener('input', (e) => { cxSearch = e.target.value.toLowerCase(); renderComplexes(); });
     document.getElementById('complex-sort').addEventListener('change', (e) => { cxSort = e.target.value; renderComplexes(); });
+    document.getElementById('complex-filter').addEventListener('change', (e) => { cxFilter = e.target.value; renderComplexes(); });
 
     // ---------- settings modal ----------
     const settingsModal  = document.getElementById('settings-modal');
@@ -860,22 +872,31 @@
 
       // ----- canvassing list -----
       const listEl = document.getElementById('complex-list-pane');
+      const countEl = document.getElementById('complex-count');
       if (complexes.length === 0) {
+        countEl.textContent = '';
         listEl.innerHTML = '<div class="rounded-xl bg-white border border-black/10 p-6 text-center text-sf-ink/55 text-sm">No complexes yet. Seed the list from Google Places (the seed script), then they appear here.</div>';
         return;
       }
       let items = complexes.slice();
+      // STATUS FILTER (a filter, not a sort)
+      if (cxFilter !== 'all') items = items.filter(c => (c.canvass_status || 'not_started') === cxFilter);
+      // free-text search
       if (cxSearch) items = items.filter(c => `${c.name || ''} ${c.city || ''} ${c.address || ''}`.toLowerCase().includes(cxSearch));
+      // SORT (genuine orderings only)
       const staleness = c => c.last_contacted_at ? Date.now() - new Date(c.last_contacted_at).getTime() : Infinity;
-      const order = { not_started: 0, flyered: 1, contacted: 2, partner: 3, declined: 4 };
       items.sort((a, b) => {
-        if (cxSort === 'name')   return (a.name || '').localeCompare(b.name || '');
-        if (cxSort === 'status') return ((order[a.canvass_status] ?? 9) - (order[b.canvass_status] ?? 9)) || (a.name || '').localeCompare(b.name || '');
-        if (cxSort === 'leads')  return ((m[b.id]?.total) || 0) - ((m[a.id]?.total) || 0);
+        if (cxSort === 'name')  return (a.name || '').localeCompare(b.name || '');
+        if (cxSort === 'leads') return ((m[b.id]?.total) || 0) - ((m[a.id]?.total) || 0);
         return staleness(b) - staleness(a); // stalest first
       });
+      // result count — status-aware when a filter is applied
+      const cxNoun = items.length === 1 ? 'apartment' : 'apartments';
+      countEl.textContent = cxFilter !== 'all'
+        ? `${items.length} ${cxNoun} ${FILTER_PHRASE[cxFilter] || cxFilter}`
+        : `${items.length} ${cxNoun}${cxSearch ? ' matching' : ''}`;
       if (items.length === 0) {
-        listEl.innerHTML = '<div class="rounded-xl bg-white border border-black/10 p-6 text-center text-sf-ink/55 text-sm">No complexes match your search.</div>';
+        listEl.innerHTML = '<div class="rounded-xl bg-white border border-black/10 p-6 text-center text-sf-ink/55 text-sm">No complexes match.</div>';
         return;
       }
       const tpl = document.getElementById('complex-row-tpl');
