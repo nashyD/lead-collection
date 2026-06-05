@@ -100,3 +100,7 @@ alter table public.complexes enable row level security;
 alter table public.leads add column if not exists complex_id    uuid references public.complexes(id);
 alter table public.leads add column if not exists complex_other text default '';
 create index if not exists leads_complex_id_idx on public.leads (complex_id);
+
+-- Self-reported preferred language (en/es/ht) so the office can route the lead to a
+-- rep who speaks it. Whitelisted to en/es/ht server-side before insert.
+alter table public.leads add column if not exists language text not null default 'en';

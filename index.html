@@ -101,6 +101,15 @@
               class="mt-1 w-full rounded-lg border border-black/15 px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
           </div>
           <div>
+            <label for="language" class="block text-sm font-semibold text-sf-ink" data-i18n="lbl_language">Language you speak</label>
+            <select id="language" name="language" required
+              class="mt-1 w-full rounded-lg border border-black/15 px-3 py-3 text-base bg-white focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20">
+              <option value="en">English</option>
+              <option value="es">Español</option>
+              <option value="ht">Kreyòl Ayisyen</option>
+            </select>
+          </div>
+          <div>
             <label for="community" class="block text-sm font-semibold text-sf-ink" data-i18n="lbl_community">Apartment community (optional)</label>
             <input id="community" name="community" type="text" list="complex-list" autocomplete="off"
               placeholder="Start typing your community…" data-i18n-ph="community_ph"
@@ -219,6 +228,7 @@
         lbl_firstName: 'Nombre',
         lbl_phone: 'Teléfono celular',
         lbl_email: 'Correo electrónico',
+        lbl_language: 'Idioma que hablas',
         lbl_community: 'Comunidad de apartamentos (opcional)',
         community_ph: 'Empieza a escribir tu comunidad…',
         btn_submit: 'Envíame mi cotización',
@@ -250,6 +260,7 @@
         lbl_firstName: 'Prenon',
         lbl_phone: 'Telefòn selilè',
         lbl_email: 'Imèl',
+        lbl_language: 'Lang ou pale',
         lbl_community: 'Kominote apatman (opsyonèl)',
         community_ph: 'Kòmanse tape non kominote w…',
         btn_submit: 'Voye pri m ban mwen',
@@ -311,6 +322,10 @@
       setBtn('lang-en', lang === 'en');
       setBtn('lang-es', lang === 'es');
       setBtn('lang-ht', lang === 'ht');
+      // Default the "language you speak" picker to the display language until the
+      // visitor explicitly changes it themselves.
+      const langSel = document.getElementById('language');
+      if (langSel && langSel.dataset.touched !== '1') langSel.value = lang;
       CURRENT_LANG = lang;
     }
 
@@ -329,6 +344,10 @@
     document.getElementById('lang-en').addEventListener('click', () => applyLang('en'));
     document.getElementById('lang-es').addEventListener('click', () => applyLang('es'));
     document.getElementById('lang-ht').addEventListener('click', () => applyLang('ht'));
+
+    // Once the visitor picks a spoken language, stop auto-syncing it to the toggle.
+    const langSelEl = document.getElementById('language');
+    if (langSelEl) langSelEl.addEventListener('change', () => { langSelEl.dataset.touched = '1'; });
 
     // Populate the apartment-community picker from the public complex list.
     fetch('/api/complexes-public')

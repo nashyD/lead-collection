@@ -14,6 +14,7 @@
 
 const OFFICE_PHONE = '(704) 853-8001';
 const FROM_NAME = 'Anthony Gallant State Farm';
+const LANGUAGE_LABELS = { en: 'English', es: 'Spanish', ht: 'Haitian Creole' };
 
 export default async function handler(req, res) {
   // CORS (in case the form is ever hosted on a different domain)
@@ -72,6 +73,10 @@ export default async function handler(req, res) {
   // save time; falls back to free-text if it isn't a known complex.
   const community = String(body.community || '').trim().slice(0, 200);
 
+  // Self-reported preferred language so the office can route to a rep who speaks it.
+  const langRaw = String(body.language || '').trim().toLowerCase();
+  const language = ['en', 'es', 'ht'].includes(langRaw) ? langRaw : 'en';
+
   const lead = {
     firstName,
     phone: phoneE164,
@@ -80,6 +85,7 @@ export default async function handler(req, res) {
     medium,
     campaign,
     community,
+    language,
     receivedAt: new Date().toISOString(),
     userAgent: req.headers['user-agent'] || '',
     ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '',
@@ -88,7 +94,7 @@ export default async function handler(req, res) {
   // Non-PII breadcrumb on every submission. Full lead detail is only logged on
   // the all-sinks-failed path below, as a last-resort recovery trail — we don't
   // want customer name/phone/email/IP sitting in function logs on every request.
-  console.log('lead_received', JSON.stringify({ source, campaign, hasCommunity: !!community }));
+  console.log('lead_received', JSON.stringify({ source, campaign, language, hasCommunity: !!community }));
 
   // Capture the lead in at least one durable place. Each sink is fail-soft, but
   // if NONE succeeds we must not tell the visitor "we got it" (a paid lead is
@@ -142,6 +148,7 @@ async function saveLeadToSupabase(lead) {
     first_name: lead.firstName,
     phone:      lead.phone,
     email:      lead.email,
+    language:   lead.language,
     source:     lead.source,
     medium:     lead.medium,
     campaign:   lead.campaign,
@@ -171,7 +178,7 @@ async function saveLeadToSupabase(lead) {
       row.complex_other = lead.community;
     }
   }
-  const resp = await fetch(url, {
+  const insert = (payload) => fetch(url, {
     method: 'POST',
     headers: {
       'apikey':        process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -179,8 +186,22 @@ async function saveLeadToSupabase(lead) {
       'Content-Type':  'application/json',
       'Prefer':        'return=minimal',
     },
-    body: JSON.stringify(row),
+    body: JSON.stringify(payload),
   });
+
+  let resp = await insert(row);
+  // If the `language` column hasn't been added to the DB yet (pending migration),
+  // drop it and retry so a lead is never lost. The office email still carries the
+  // language, and rows store it correctly once the column exists.
+  if (!resp.ok && 'language' in row) {
+    const errText = await resp.text();
+    if (/language/i.test(errText)) {
+      delete row.language;
+      resp = await insert(row);
+    } else {
+      throw new Error(`Supabase ${resp.status}: ${errText}`);
+    }
+  }
   if (!resp.ok) throw new Error(`Supabase ${resp.status}: ${await resp.text()}`);
 }
 
@@ -225,12 +246,13 @@ async function emailLeadConfirmation(lead) {
 }
 
 async function emailOffice(lead, recipients) {
-  const subject = `New renters lead — ${lead.firstName} (${lead.source})`;
+  const subject = `New renters lead — ${lead.firstName} · ${LANGUAGE_LABELS[lead.language] || lead.language} (${lead.source})`;
   const html = `
     <div style="font-family:-apple-system,Segoe UI,sans-serif;max-width:520px;">
       <h2 style="margin:0 0 12px;color:#E22925;">New lead — reach out fast</h2>
       <table style="border-collapse:collapse;width:100%;font-size:14px;">
         <tr><td style="padding:6px 0;color:#666;width:120px;">Name</td><td style="padding:6px 0;font-weight:600;">${escapeHtml(lead.firstName)}</td></tr>
+        <tr><td style="padding:6px 0;color:#666;">Speaks</td><td style="padding:6px 0;font-weight:700;color:#E22925;">${escapeHtml(LANGUAGE_LABELS[lead.language] || lead.language)}</td></tr>
         <tr><td style="padding:6px 0;color:#666;">Phone</td><td style="padding:6px 0;font-weight:600;"><a href="sms:${lead.phone}">${lead.phone}</a> · <a href="tel:${lead.phone}">call</a></td></tr>
         <tr><td style="padding:6px 0;color:#666;">Email</td><td style="padding:6px 0;"><a href="mailto:${lead.email}">${escapeHtml(lead.email)}</a></td></tr>
         <tr><td style="padding:6px 0;color:#666;">Source</td><td style="padding:6px 0;">${escapeHtml(lead.source)}${lead.campaign ? ' / ' + escapeHtml(lead.campaign) : ''}</td></tr>
