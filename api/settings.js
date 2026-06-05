@@ -1,10 +1,12 @@
-// GET  /api/settings  -> { notify_emails: ["a@x.com", ...] }
-// POST /api/settings   { notify_emails: "raw text (commas/newlines ok)" }
-//   Auth: requires sf_dash_session cookie. Stores the office notification list.
+// GET  /api/settings  -> { notify_emails: ["a@x.com", ...], mileage_rate: 0.70 }
+// POST /api/settings   { notify_emails?: "raw text (commas/newlines ok)", mileage_rate?: number }
+//   Auth: requires sf_dash_session cookie. Stores office notification list +
+//   the IRS mileage rate used for the mileage-tracker $ estimate.
 
 import { requireSession } from '../lib/auth.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const DEFAULT_RATE = 0.70;
 
 function parseEmails(raw) {
   return [...new Set(
@@ -13,6 +15,13 @@ function parseEmails(raw) {
       .map(s => s.trim().toLowerCase())
       .filter(e => EMAIL_RE.test(e))
   )];
+}
+
+// Dollars per mile: a non-negative number, capped at a sane ceiling. null = invalid.
+function parseRate(raw) {
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return Math.round(Math.min(10, n) * 1000) / 1000;
 }
 
 async function readSetting(key) {
@@ -44,6 +53,11 @@ async function writeSetting(key, value) {
   if (!resp.ok) throw new Error(`Supabase ${resp.status}: ${await resp.text()}`);
 }
 
+async function currentRate() {
+  const r = parseRate(await readSetting('mileage_rate'));
+  return r === null ? DEFAULT_RATE : r;
+}
+
 export default async function handler(req, res) {
   if (!requireSession(req, res)) return;
 
@@ -53,16 +67,31 @@ export default async function handler(req, res) {
 
   try {
     if (req.method === 'GET') {
-      const raw = await readSetting('notify_emails');
-      return res.status(200).json({ notify_emails: parseEmails(raw) });
+      const [emailsRaw, rate] = await Promise.all([readSetting('notify_emails'), currentRate()]);
+      return res.status(200).json({ notify_emails: parseEmails(emailsRaw), mileage_rate: rate });
     }
 
     if (req.method === 'POST' || req.method === 'PUT') {
       let body = req.body;
       if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = {}; } }
-      const emails = parseEmails(body?.notify_emails);
-      await writeSetting('notify_emails', emails.join(', '));
-      return res.status(200).json({ notify_emails: emails });
+      body = body || {};
+
+      const out = {};
+      if ('notify_emails' in body) {
+        const emails = parseEmails(body.notify_emails);
+        await writeSetting('notify_emails', emails.join(', '));
+        out.notify_emails = emails;
+      }
+      if ('mileage_rate' in body) {
+        const rate = parseRate(body.mileage_rate);
+        if (rate === null) return res.status(400).json({ error: 'Invalid mileage rate' });
+        await writeSetting('mileage_rate', String(rate));
+        out.mileage_rate = rate;
+      }
+      // Always return the full current settings so the client can refresh both.
+      if (!('notify_emails' in out)) out.notify_emails = parseEmails(await readSetting('notify_emails'));
+      if (!('mileage_rate' in out)) out.mileage_rate = await currentRate();
+      return res.status(200).json(out);
     }
 
     return res.status(405).json({ error: 'Method not allowed' });

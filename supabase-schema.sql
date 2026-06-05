@@ -104,3 +104,42 @@ create index if not exists leads_complex_id_idx on public.leads (complex_id);
 -- Self-reported preferred language (en/es/ht) so the office can route the lead to a
 -- rep who speaks it. Whitelisted to en/es/ht server-side before insert.
 alter table public.leads add column if not exists language text not null default 'en';
+
+-- ---------------------------------------------------------------------------
+-- Mileage tracker: one row per flyer-delivery trip. A canvasser enters their
+-- name (remembered on their device) and taps Start; thereafter each arrival is a
+-- "stop" they tap to record. Miles = the straight-line distance between
+-- consecutive stops × a road factor — no continuous GPS, so the app needn't stay
+-- open while driving. 'driver' is a free-text label (the shared office password
+-- is the only auth), so mileage is attributed per person without a user system.
+create table if not exists public.trips (
+  id          uuid primary key default gen_random_uuid(),
+  driver      text not null,
+  status      text not null default 'active'
+              check (status in ('active','completed')),
+  source      text not null default 'gps'
+              check (source in ('gps','manual')),  -- 'manual' once the total is hand-edited
+  started_at  timestamptz not null default now(),
+  ended_at    timestamptz,
+  miles       numeric not null default 0 check (miles >= 0),
+  stops       int not null default 1,              -- recorded stops (the origin counts as 1)
+  start_lat   numeric,
+  start_lng   numeric,
+  last_lat    numeric,                              -- most recent stop, for the next-leg calc
+  last_lng    numeric,
+  note        text default '',
+  created_at  timestamptz not null default now()
+);
+
+create index if not exists trips_driver_idx     on public.trips (driver);
+create index if not exists trips_started_at_idx  on public.trips (started_at desc);
+create index if not exists trips_status_idx      on public.trips (status);
+
+-- Service-role only, same as the other tables.
+alter table public.trips enable row level security;
+
+-- IRS standard mileage rate (US dollars per mile) for the trip-log $ estimate.
+-- Editable from the dashboard Settings panel. Default is the 2025 IRS rate.
+insert into public.settings (key, value)
+values ('mileage_rate', '0.70')
+on conflict (key) do nothing;

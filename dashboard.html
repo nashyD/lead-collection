@@ -72,6 +72,12 @@
         <p class="text-sm text-sf-ink/65">Enter the office password to continue.</p>
       </div>
       <div>
+        <label for="driver-name" class="block text-xs font-semibold text-sf-ink/55 uppercase tracking-wide mb-1">Your name</label>
+        <input id="driver-name" name="driver-name" type="text" autocomplete="name" placeholder="e.g. Marcus"
+          class="w-full rounded-lg border border-black/15 px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
+        <p class="text-[11px] text-sf-ink/45 mt-1">Tags your mileage trips so the office can total them. Saved on this phone.</p>
+      </div>
+      <div>
         <label for="password" class="sr-only">Password</label>
         <input id="password" name="password" type="password" required autofocus autocomplete="current-password"
           class="w-full rounded-lg border border-black/15 px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
@@ -95,12 +101,21 @@
           <nav class="flex items-center gap-1">
             <button id="tab-leads" type="button" class="dtab px-3.5 py-2 rounded-lg text-sm font-semibold" data-pane="leads">Leads</button>
             <button id="tab-complexes" type="button" class="dtab px-3.5 py-2 rounded-lg text-sm font-semibold" data-pane="complexes">Complexes</button>
+            <button id="tab-mileage" type="button" class="dtab px-3.5 py-2 rounded-lg text-sm font-semibold" data-pane="mileage">Mileage</button>
           </nav>
         </div>
-        <div class="flex items-center gap-0.5 sm:gap-3 flex-shrink-0">
-          <button id="settings-btn" class="text-xs sm:text-sm font-semibold text-sf-ink/70 hover:text-sf-red px-1.5 py-2">Settings</button>
-          <button id="refresh-btn" class="text-xs sm:text-sm font-semibold text-sf-ink/70 hover:text-sf-red px-1.5 py-2">Refresh</button>
-          <button id="logout-btn" class="text-xs sm:text-sm font-semibold text-sf-ink/70 hover:text-sf-red px-1.5 py-2">Log out</button>
+        <div class="relative flex items-center flex-shrink-0">
+          <!-- Mobile: collapse the utility actions behind a ⋯ menu so the three tabs fit -->
+          <button id="util-toggle" type="button" aria-label="More options" aria-expanded="false"
+            class="sm:hidden text-sf-ink/70 hover:text-sf-red p-2 -mr-1" style="touch-action:manipulation">
+            <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
+          </button>
+          <div id="util-cluster"
+            class="hidden sm:flex flex-col sm:flex-row items-stretch sm:items-center gap-1 sm:gap-3 absolute sm:static right-0 top-[calc(100%+6px)] sm:top-auto bg-white sm:bg-transparent border border-black/10 sm:border-0 rounded-xl shadow-lg sm:shadow-none p-1.5 sm:p-0 z-50 min-w-[170px] sm:min-w-0">
+            <button id="settings-btn" class="text-sm font-semibold text-sf-ink/70 hover:text-sf-red px-3 py-2.5 sm:px-1.5 sm:py-2 text-left rounded-lg hover:bg-black/[0.03] sm:hover:bg-transparent">Settings</button>
+            <button id="refresh-btn" class="text-sm font-semibold text-sf-ink/70 hover:text-sf-red px-3 py-2.5 sm:px-1.5 sm:py-2 text-left rounded-lg hover:bg-black/[0.03] sm:hover:bg-transparent">Refresh</button>
+            <button id="logout-btn" class="text-sm font-semibold text-sf-ink/70 hover:text-sf-red px-3 py-2.5 sm:px-1.5 sm:py-2 text-left rounded-lg hover:bg-black/[0.03] sm:hover:bg-transparent">Log out</button>
+          </div>
         </div>
       </div>
     </header>
@@ -184,6 +199,71 @@
         </section>
       </div>
 
+      <!-- ===== MILEAGE PANE ===== -->
+      <div id="mileage-pane" class="hidden space-y-6 max-w-2xl">
+
+        <!-- Driver + tracker card -->
+        <section class="rounded-2xl bg-white border border-black/10 shadow-sm overflow-hidden">
+          <div class="flex items-center justify-between gap-3 px-5 pt-4">
+            <div class="text-sm">
+              <span class="text-sf-ink/55">Driver:</span>
+              <span id="mi-driver" class="font-bold">&mdash;</span>
+            </div>
+            <button id="mi-change-name" type="button" class="text-xs font-semibold text-sf-ink/55 hover:text-sf-red py-1 px-1">Change</button>
+          </div>
+
+          <!-- Idle -->
+          <div id="mi-idle" class="px-5 py-6 text-center">
+            <p class="text-sm text-sf-ink/60 mb-4">Tap start when you head out. Drop a stop each time you arrive &mdash; no need to keep this open while you drive.</p>
+            <button id="mi-start" type="button" style="touch-action:manipulation"
+              class="w-full rounded-2xl bg-sf-red hover:bg-sf-redDark active:bg-sf-redDark text-white font-extrabold text-lg min-h-[64px] flex items-center justify-center gap-2 transition disabled:opacity-60">
+              <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              Start trip
+            </button>
+          </div>
+
+          <!-- Active -->
+          <div id="mi-active" class="hidden px-5 py-6 text-center">
+            <div id="mi-active-miles" class="text-5xl font-extrabold tabular-nums leading-none">0.0<span class="text-2xl text-sf-ink/50 font-bold"> mi</span></div>
+            <div id="mi-active-meta" class="mt-2 text-sm text-sf-ink/55">1 stop &middot; just started</div>
+            <button id="mi-addstop" type="button" style="touch-action:manipulation"
+              class="mt-5 w-full rounded-2xl bg-sf-red hover:bg-sf-redDark active:bg-sf-redDark text-white font-extrabold text-lg min-h-[64px] flex items-center justify-center gap-2 transition disabled:opacity-60">
+              <svg viewBox="0 0 24 24" class="w-6 h-6" fill="currentColor"><path d="M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+              Add stop here
+            </button>
+            <button id="mi-end" type="button" style="touch-action:manipulation"
+              class="mt-2.5 w-full rounded-2xl border-2 border-sf-red text-sf-red font-extrabold text-base min-h-[54px] flex items-center justify-center gap-2 active:bg-sf-red/5 transition">
+              <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+              End trip
+            </button>
+            <p class="mt-3 text-[11px] text-sf-ink/45">Tap &ldquo;Add stop&rdquo; when you arrive. Setting a status on the Complexes &rsaquo; Next tool logs a stop too.</p>
+          </div>
+        </section>
+
+        <!-- This driver's totals + log -->
+        <section>
+          <div class="flex items-end justify-between gap-3 mb-3">
+            <h2 class="text-lg font-extrabold tracking-tight">Your trips</h2>
+            <div class="text-right text-xs text-sf-ink/55 leading-relaxed">
+              <div><span id="mi-week-mi" class="font-bold text-sf-ink tabular-nums">0</span> mi this week</div>
+              <div><span id="mi-month-mi" class="font-bold text-sf-ink tabular-nums">0</span> mi this month &middot; <span id="mi-month-val" class="font-bold text-emerald-700 tabular-nums">$0</span></div>
+            </div>
+          </div>
+          <div id="mi-trips" class="space-y-2.5">
+            <div class="rounded-xl bg-white border border-black/10 p-6 text-center text-sf-ink/55 text-sm">No trips yet.</div>
+          </div>
+        </section>
+
+        <!-- Office roll-up -->
+        <section>
+          <h2 class="text-lg font-extrabold tracking-tight">Office mileage &mdash; this month</h2>
+          <p class="text-xs text-sf-ink/50 mb-3">Everyone&rsquo;s logged miles, for reimbursement.</p>
+          <div id="mi-rollup" class="rounded-xl bg-white border border-black/10 overflow-hidden">
+            <div class="p-6 text-center text-sm text-sf-ink/45">No trips logged this month yet.</div>
+          </div>
+        </section>
+      </div>
+
     </main>
 
     <!-- Settings modal -->
@@ -201,6 +281,12 @@
           <label for="notify-emails" class="block text-xs font-semibold text-sf-ink/55 uppercase tracking-wide mb-1">Office notification emails</label>
           <textarea id="notify-emails" rows="5" class="w-full rounded-lg border border-black/15 px-3 py-2 text-sm focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" placeholder="One per line (or comma-separated):&#10;anthony@example.com&#10;office@example.com"></textarea>
           <p class="text-xs text-sf-ink/45 mt-1">Every new lead also gets an automatic confirmation email — no setup needed here.</p>
+        </div>
+        <div class="mt-5">
+          <label for="mileage-rate" class="block text-xs font-semibold text-sf-ink/55 uppercase tracking-wide mb-1">Mileage rate ($ / mile)</label>
+          <input id="mileage-rate" type="number" inputmode="decimal" min="0" max="10" step="0.01" placeholder="0.70"
+            class="w-40 rounded-lg border border-black/15 px-3 py-2 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
+          <p class="text-xs text-sf-ink/45 mt-1">Used to value tracked miles in the Mileage tab. 2025 IRS rate is $0.70.</p>
         </div>
         <div class="mt-5 flex items-center justify-end gap-3">
           <span id="settings-status" class="text-xs text-sf-ink/55 mr-auto"></span>
@@ -248,11 +334,71 @@
             <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor"><path d="M21.71 11.29 12.71 2.29a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l9 9a1 1 0 0 0 1.42 0l9-9a1 1 0 0 0 0-1.42ZM14 14.5V12h-4v3H8v-4a1 1 0 0 1 1-1h5V7.5l3.5 3.5Z"/></svg>
             Navigate
           </a>
-          <div class="mt-2.5 grid grid-cols-2 gap-2.5">
-            <button id="next-mark" type="button" style="touch-action:manipulation" class="rounded-xl border-2 border-sf-red text-sf-red font-bold text-sm min-h-[50px] active:bg-sf-red/5">Mark contacted</button>
+          <div class="mt-4 text-left">
+            <label for="next-status-sel" class="block text-[10px] font-semibold text-sf-ink/45 uppercase tracking-wide mb-1">Status</label>
+            <select id="next-status-sel" class="w-full rounded-lg border border-black/15 bg-white px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20">
+              <option value="flyered">Flyered</option>
+              <option value="contacted">Contacted</option>
+              <option value="partner">Partner (accepted)</option>
+              <option value="declined">Declined</option>
+              <option value="not_started">Not started</option>
+            </select>
+          </div>
+          <div class="mt-2.5 text-left">
+            <label for="next-notes" class="block text-[10px] font-semibold text-sf-ink/45 uppercase tracking-wide mb-1">Notes</label>
+            <textarea id="next-notes" rows="2" placeholder="What happened at this complex&hellip;"
+              class="w-full rounded-lg border border-black/15 px-3 py-2.5 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20"></textarea>
+          </div>
+          <p id="next-trip-hint" class="hidden mt-2 text-[11px] font-semibold text-emerald-700"></p>
+          <div class="mt-3 grid grid-cols-2 gap-2.5">
+            <button id="next-save" type="button" style="touch-action:manipulation" class="rounded-xl bg-sf-red hover:bg-sf-redDark text-white font-bold text-sm min-h-[50px] active:bg-sf-redDark disabled:opacity-60">Save &amp; next</button>
             <button id="next-skip" type="button" style="touch-action:manipulation" class="rounded-xl border border-black/15 text-sf-ink/70 font-bold text-sm min-h-[50px] active:bg-black/5">Skip &rarr;</button>
           </div>
           <p id="next-count" class="mt-3 text-center text-xs text-sf-ink/45"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Save trip sheet -->
+    <div id="save-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      <div id="save-backdrop" class="absolute inset-0 bg-black/50"></div>
+      <div class="relative w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl border border-black/10 shadow-xl p-5 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-extrabold leading-tight">Save this trip</h2>
+            <p id="save-sub" class="text-sm text-sf-ink/60 mt-0.5"></p>
+          </div>
+          <button id="save-close" type="button" class="-m-2 p-2 text-sf-ink/40 hover:text-sf-red text-3xl leading-none">&times;</button>
+        </div>
+        <div class="mt-4">
+          <label for="save-miles" class="block text-xs font-semibold text-sf-ink/55 uppercase tracking-wide mb-1">Miles</label>
+          <input id="save-miles" type="number" inputmode="decimal" min="0" max="2000" step="0.1"
+            class="w-full rounded-lg border border-black/15 px-3 py-3 text-2xl font-bold tabular-nums focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
+          <p class="text-[11px] text-sf-ink/45 mt-1">Estimated from the distance between your stops &mdash; edit it to match your odometer if you like.</p>
+        </div>
+        <div class="mt-3">
+          <label for="save-note" class="block text-xs font-semibold text-sf-ink/55 uppercase tracking-wide mb-1">Note (optional)</label>
+          <input id="save-note" type="text" maxlength="500" placeholder="e.g. Eastridge + Forest Glen"
+            class="w-full rounded-lg border border-black/15 px-3 py-2.5 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
+        </div>
+        <div class="mt-5 grid grid-cols-2 gap-2.5">
+          <button id="save-resume" type="button" style="touch-action:manipulation" class="rounded-xl border border-black/15 text-sf-ink/70 font-bold text-sm min-h-[50px]">Keep driving</button>
+          <button id="save-confirm" type="button" style="touch-action:manipulation" class="rounded-xl bg-sf-red hover:bg-sf-redDark text-white font-bold text-sm min-h-[50px] disabled:opacity-60">Save trip</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Who's driving sheet (name capture when missing) -->
+    <div id="name-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      <div id="name-backdrop" class="absolute inset-0 bg-black/50"></div>
+      <div class="relative w-full sm:max-w-sm bg-white rounded-t-2xl sm:rounded-2xl border border-black/10 shadow-xl p-5">
+        <h2 class="text-xl font-extrabold leading-tight">Who&rsquo;s driving?</h2>
+        <p class="text-sm text-sf-ink/60 mt-0.5 mb-3">Your name tags your mileage trips. Saved on this phone.</p>
+        <input id="name-input" type="text" autocomplete="name" placeholder="e.g. Marcus"
+          class="w-full rounded-lg border border-black/15 px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
+        <div class="mt-4 grid grid-cols-2 gap-2.5">
+          <button id="name-cancel" type="button" style="touch-action:manipulation" class="rounded-xl border border-black/15 text-sf-ink/70 font-bold text-sm min-h-[50px]">Cancel</button>
+          <button id="name-save" type="button" style="touch-action:manipulation" class="rounded-xl bg-sf-red hover:bg-sf-redDark text-white font-bold text-sm min-h-[50px]">Save</button>
         </div>
       </div>
     </div>
@@ -386,6 +532,14 @@
     let pollTimer = null;
     let mobileCol = 'new';   // which status column shows on mobile
 
+    // mileage tracker (stop-based: distance summed between recorded stops)
+    let driver = (localStorage.getItem('sf_driver') || '').trim();
+    let trips = [];          // all trips (history list + office roll-up)
+    let mileageRate = 0.70;  // $/mile, from settings; default is the 2025 IRS rate
+    let activeTrip = null;   // the in-progress trip row, if any
+    let tripBusy = false;    // a start/stop/end request is in flight (guards poll adoption)
+    const ROAD_FACTOR = 1.3; // straight-line distance → approx driving distance
+
     const CANVASS_LABELS = {
       not_started: 'Not started', flyered: 'Flyered', contacted: 'Contacted',
       partner: 'Partner', declined: 'Declined',
@@ -393,6 +547,7 @@
     const FILTER_PHRASE = { not_started: 'not started', flyered: 'flyered', contacted: 'contacted', partner: 'partnered', declined: 'declined' };
 
     // ---------- bootstrap ----------
+    document.getElementById('driver-name').value = driver;
     showView('loading');
     fetchAndRender().catch(handleFetchError);
 
@@ -403,6 +558,8 @@
       loginBtn.disabled = true;
       loginBtn.textContent = 'Signing in…';
       try {
+        const nameVal = document.getElementById('driver-name').value.trim();
+        if (nameVal) setDriver(nameVal);
         const password = document.getElementById('password').value;
         const r = await fetch('/api/dashboard-login', {
           method: 'POST',
@@ -435,15 +592,37 @@
 
     refreshBtn.addEventListener('click', () => fetchAndRender().catch(handleFetchError));
 
+    // ---------- mobile utility menu (Settings / Refresh / Log out behind ⋯) ----------
+    const utilToggle  = document.getElementById('util-toggle');
+    const utilCluster = document.getElementById('util-cluster');
+    function setUtilMenu(open) {
+      utilCluster.classList.toggle('hidden', !open);
+      utilCluster.classList.toggle('flex', open);
+      utilToggle.setAttribute('aria-expanded', String(open));
+    }
+    function closeUtilMenu() { if (!utilCluster.classList.contains('hidden')) setUtilMenu(false); }
+    utilToggle.addEventListener('click', (e) => { e.stopPropagation(); setUtilMenu(utilCluster.classList.contains('hidden')); });
+    document.addEventListener('click', (e) => {
+      if (utilCluster.classList.contains('hidden')) return;
+      if (utilCluster.contains(e.target) || utilToggle.contains(e.target)) return;
+      closeUtilMenu();
+    });
+    // Picking any action closes the menu (the buttons keep their own handlers).
+    [settingsBtnEl(), refreshBtn, logoutBtn].forEach(b => b.addEventListener('click', closeUtilMenu));
+    function settingsBtnEl() { return document.getElementById('settings-btn'); }
+
     // ---------- tabs ----------
     function showPane(pane) {
       document.getElementById('leads-pane').classList.toggle('hidden', pane !== 'leads');
       document.getElementById('complexes-pane').classList.toggle('hidden', pane !== 'complexes');
+      document.getElementById('mileage-pane').classList.toggle('hidden', pane !== 'mileage');
       document.getElementById('tab-leads').setAttribute('aria-pressed', pane === 'leads');
       document.getElementById('tab-complexes').setAttribute('aria-pressed', pane === 'complexes');
+      document.getElementById('tab-mileage').setAttribute('aria-pressed', pane === 'mileage');
     }
     document.getElementById('tab-leads').addEventListener('click', () => showPane('leads'));
     document.getElementById('tab-complexes').addEventListener('click', () => { showPane('complexes'); renderComplexes(); });
+    document.getElementById('tab-mileage').addEventListener('click', () => { showPane('mileage'); ensureDriver(); renderMileage(); });
     showPane('leads');
 
     document.getElementById('complex-search').addEventListener('input', (e) => { cxSearch = e.target.value.toLowerCase(); renderComplexes(); });
@@ -462,7 +641,11 @@
       settingsModal.classList.remove('hidden');
       fetch('/api/settings', { credentials: 'same-origin' })
         .then(r => r.ok ? r.json() : Promise.reject(r.status))
-        .then(d => { notifyEmails.value = (d.notify_emails || []).join('\n'); settingsStatus.textContent = ''; })
+        .then(d => {
+          notifyEmails.value = (d.notify_emails || []).join('\n');
+          if (typeof d.mileage_rate === 'number') { mileageRate = d.mileage_rate; document.getElementById('mileage-rate').value = d.mileage_rate; }
+          settingsStatus.textContent = '';
+        })
         .catch(() => { settingsStatus.textContent = 'Could not load current settings.'; });
     }
     function closeSettings() { settingsModal.classList.add('hidden'); }
@@ -476,14 +659,18 @@
       settingsSave.disabled = true;
       settingsStatus.textContent = 'Saving…';
       try {
+        const payload = { notify_emails: notifyEmails.value };
+        const rateVal = document.getElementById('mileage-rate').value.trim();
+        if (rateVal !== '') payload.mileage_rate = rateVal;
         const r = await fetch('/api/settings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'same-origin',
-          body: JSON.stringify({ notify_emails: notifyEmails.value }),
+          body: JSON.stringify(payload),
         });
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const d = await r.json();
+        if (typeof d.mileage_rate === 'number') { mileageRate = d.mileage_rate; document.getElementById('mileage-rate').value = d.mileage_rate; renderMileage(); }
         const list = d.notify_emails || [];
         notifyEmails.value = list.join('\n');
         settingsStatus.textContent = list.length
@@ -518,7 +705,7 @@
     document.getElementById('next-backdrop').addEventListener('click', closeNext);
     document.getElementById('next-refind').addEventListener('click', findNext);
     document.getElementById('next-skip').addEventListener('click', skipNext);
-    document.getElementById('next-mark').addEventListener('click', markNext);
+    document.getElementById('next-save').addEventListener('click', saveNext);
 
     // Great-circle distance between two {lat,lng} points, in miles.
     function haversineMiles(a, b) {
@@ -583,14 +770,24 @@
       renderNext();
     }
 
-    async function markNext() {
+    async function saveNext() {
       const c = nextQueue[nextIdx];
       if (!c) return;
-      const btn = document.getElementById('next-mark');
-      btn.disabled = true; btn.textContent = 'Marking\u2026';
-      const ok = await markContacted(c, '');   // now waits for the real PATCH
-      btn.disabled = false; btn.textContent = 'Mark contacted';
-      if (ok) skipNext();                       // only advance if the mark saved
+      const status = document.getElementById('next-status-sel').value;
+      const notes  = document.getElementById('next-notes').value;
+      const btn = document.getElementById('next-save');
+      btn.disabled = true; btn.textContent = 'Saving\u2026';
+      // Save the visit (status + notes) and stamp the contact under the driver's name.
+      const ok = await saveComplex(c, {
+        canvass_status: status,
+        notes,
+        mark_contacted: true,
+        last_contacted_by: driver || c.last_contacted_by || '',
+      });
+      // If a mileage trip is running, log this complex as a stop (we know its coords).
+      if (ok && activeTrip) await addStopForComplex(c);
+      btn.disabled = false; btn.textContent = 'Save & next';
+      if (ok) skipNext();                        // only advance if the save succeeded
     }
 
     function renderNext() {
@@ -604,6 +801,23 @@
       document.getElementById('next-meta').textContent = `${CANVASS_LABELS[c.canvass_status] || 'Not started'} \u00b7 ${units}${last}`;
       // Destination only, so Google Maps uses the phone's live location as the origin.
       document.getElementById('next-nav').href = `https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${c.lat},${c.lng}`;
+      // Pre-fill the status picker (default a fresh complex to "Flyered") and notes.
+      document.getElementById('next-status-sel').value =
+        (c.canvass_status && c.canvass_status !== 'not_started') ? c.canvass_status : 'flyered';
+      document.getElementById('next-notes').value = c.notes || '';
+      // Trip hint: if a mileage trip is running, saving here also logs a stop.
+      const hint = document.getElementById('next-trip-hint');
+      if (activeTrip) {
+        let est = '';
+        const ll = { lat: Number(activeTrip.last_lat), lng: Number(activeTrip.last_lng) };
+        if (hasCoords(c) && Number.isFinite(ll.lat) && Number.isFinite(ll.lng)) {
+          est = ` (+~${milesToText(haversineMiles(ll, c) * ROAD_FACTOR)} mi)`;
+        }
+        hint.textContent = `Trip running \u2014 saving logs this as a stop${est}`;
+        hint.classList.remove('hidden');
+      } else {
+        hint.classList.add('hidden');
+      }
       const fromOffice = nextStart && nextStart.source === 'office' ? ' \u00b7 from office (location off)' : '';
       document.getElementById('next-count').textContent = `#${nextIdx + 1} of ${nextQueue.length} nearby${fromOffice}`;
     }
@@ -619,8 +833,10 @@
       const data = await r.json();
       leads = Array.isArray(data.leads) ? data.leads : [];
       await loadComplexes();
+      await loadTrips();
       showView('dash');
       renderAll();
+      loadMileageRate();
       startPolling();
     }
 
@@ -645,6 +861,7 @@
           const data = await r.json();
           leads = Array.isArray(data.leads) ? data.leads : [];
           await loadComplexes();
+          await loadTrips();
           renderAll();
         } catch {}
       }, 30000);
@@ -832,7 +1049,7 @@
     }
 
     // ---------- complexes (ranking + canvassing) ----------
-    function renderAll() { render(); renderComplexes(); }
+    function renderAll() { render(); renderComplexes(); renderMileage(); }
 
     function leadCountsByComplex() {
       const m = {}; let unlisted = 0;
@@ -973,6 +1190,330 @@
     }
 
     function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+    // ---------- mileage tracker ----------
+    const saveModal = document.getElementById('save-modal');
+    const nameModal = document.getElementById('name-modal');
+
+    function milesToText(mi) { return (Math.round((Number(mi) || 0) * 10) / 10).toFixed(1); }
+    function startOfMonth(ms) { const d = new Date(ms); return new Date(d.getFullYear(), d.getMonth(), 1).getTime(); }
+    function durationText(start, end) {
+      const s = Math.max(0, Math.floor((new Date(end).getTime() - new Date(start).getTime()) / 1000));
+      const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+      return h > 0 ? `${h}:${String(m).padStart(2, '0')}` : `${m}:${String(s % 60).padStart(2, '0')}`;
+    }
+
+    // ----- driver identity (free-text, remembered on the device) -----
+    function setDriver(name) {
+      driver = String(name || '').trim().slice(0, 120);
+      localStorage.setItem('sf_driver', driver);
+      const el = document.getElementById('mi-driver');
+      if (el) el.textContent = driver || '—';
+    }
+    function ensureDriver() {
+      const el = document.getElementById('mi-driver');
+      if (el) el.textContent = driver || '—';
+      if (!driver) openNameModal();
+    }
+    function openNameModal() {
+      document.getElementById('name-input').value = driver;
+      nameModal.classList.remove('hidden');
+      setTimeout(() => document.getElementById('name-input').focus(), 50);
+    }
+    function closeNameModal() { nameModal.classList.add('hidden'); }
+
+    document.getElementById('mi-change-name').addEventListener('click', openNameModal);
+    document.getElementById('name-cancel').addEventListener('click', closeNameModal);
+    document.getElementById('name-backdrop').addEventListener('click', closeNameModal);
+    function commitName() {
+      const v = document.getElementById('name-input').value.trim();
+      if (!v) { document.getElementById('name-input').focus(); return; }
+      setDriver(v);
+      closeNameModal();
+      loadTrips().then(renderMileage);
+    }
+    document.getElementById('name-save').addEventListener('click', commitName);
+    document.getElementById('name-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') commitName(); });
+
+    // ----- data -----
+    async function loadTrips() {
+      try {
+        const r = await fetch('/api/trips', { credentials: 'same-origin' });
+        if (r.ok) { const d = await r.json(); trips = Array.isArray(d.trips) ? d.trips : []; }
+      } catch {}
+      // Adopt this driver's in-progress trip, unless a start/stop/end is mid-flight.
+      if (!tripBusy) {
+        activeTrip = (driver && trips.find(t => t.status === 'active' && t.driver === driver)) || null;
+      }
+    }
+    async function loadMileageRate() {
+      try {
+        const r = await fetch('/api/settings', { credentials: 'same-origin' });
+        if (r.ok) { const d = await r.json(); if (typeof d.mileage_rate === 'number') { mileageRate = d.mileage_rate; renderMileage(); } }
+      } catch {}
+    }
+
+    // ----- GPS (one fix per stop; no continuous tracking) -----
+    function getCurrentFix() {
+      return new Promise(resolve => {
+        if (!navigator.geolocation) return resolve(null);
+        navigator.geolocation.getCurrentPosition(
+          pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          () => resolve(null),
+          { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+        );
+      });
+    }
+
+    // ----- trip lifecycle (stop-based) -----
+    async function startTrip() {
+      if (!driver) { openNameModal(); return; }
+      const btn = document.getElementById('mi-start');
+      btn.disabled = true; tripBusy = true;
+      const origin = await getCurrentFix();
+      try {
+        const r = await fetch('/api/trips', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+          body: JSON.stringify({ driver, lat: origin?.lat, lng: origin?.lng }),
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        activeTrip = (await r.json()).trip;
+      } catch (e) {
+        console.error(e); alert('Could not start the trip. Try again.');
+        btn.disabled = false; tripBusy = false; return;
+      }
+      btn.disabled = false; tripBusy = false;
+      renderMileage();
+    }
+
+    // Append a stop: add the leg from the last stop to `point` (straight-line ×
+    // road factor) and persist the new running total. Returns the miles added, or null.
+    async function addStop(point) {
+      if (!activeTrip || !point) return null;
+      const last = { lat: Number(activeTrip.last_lat), lng: Number(activeTrip.last_lng) };
+      const haveLast = Number.isFinite(last.lat) && Number.isFinite(last.lng);
+      const leg = haveLast ? haversineMiles(last, point) * ROAD_FACTOR : 0;
+      const newMiles = (Number(activeTrip.miles) || 0) + leg;
+      const newStops = (Number(activeTrip.stops) || 1) + 1;
+      tripBusy = true;
+      try {
+        const r = await fetch('/api/trips', {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+          body: JSON.stringify({ id: activeTrip.id, miles: newMiles, last_lat: point.lat, last_lng: point.lng, stops: newStops }),
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const d = await r.json();
+        if (d.trip) activeTrip = d.trip;
+        renderMileage();
+        return leg;
+      } catch (e) { console.error(e); alert('Could not log the stop. Try again.'); return null; }
+      finally { tripBusy = false; }
+    }
+
+    async function addStopHere() {
+      const btn = document.getElementById('mi-addstop');
+      const meta = document.getElementById('mi-active-meta');
+      const restore = meta.textContent;
+      btn.disabled = true; meta.textContent = 'Getting your location…';
+      const fix = await getCurrentFix();
+      btn.disabled = false;
+      if (!fix) { meta.textContent = restore; alert('Could not get your location. Turn location on, then try again.'); return; }
+      const leg = await addStop(fix);                 // calls renderMileage on success
+      if (leg != null) flashTripHint(`Stop added · +${milesToText(leg)} mi`);
+    }
+
+    // Called from the "Next complex" flow: log this complex (known coords) as a stop.
+    async function addStopForComplex(c) {
+      if (!activeTrip || !hasCoords(c)) return null;
+      return addStop({ lat: c.lat, lng: c.lng });
+    }
+
+    function endTrip() { if (activeTrip) openSaveSheet(); }
+
+    function openSaveSheet() {
+      const sc = activeTrip ? (Number(activeTrip.stops) || 1) : 0;
+      document.getElementById('save-miles').value = milesToText(activeTrip ? activeTrip.miles : 0);
+      document.getElementById('save-note').value = (activeTrip && activeTrip.note) || '';
+      document.getElementById('save-sub').textContent = activeTrip
+        ? `${sc} stop${sc === 1 ? '' : 's'} · started ${relTime(activeTrip.started_at)}` : '';
+      saveModal.classList.remove('hidden');
+    }
+    function closeSaveSheet() { saveModal.classList.add('hidden'); }
+
+    async function confirmSaveTrip() {
+      if (!activeTrip) { closeSaveSheet(); return; }
+      let miles = parseFloat(document.getElementById('save-miles').value);
+      if (!Number.isFinite(miles) || miles < 0) miles = 0;
+      const note = document.getElementById('save-note').value.trim();
+      const edited = Math.abs(miles - (Number(activeTrip.miles) || 0)) > 0.05;
+      const btn = document.getElementById('save-confirm');
+      btn.disabled = true; btn.textContent = 'Saving…'; tripBusy = true;
+      try {
+        const r = await fetch('/api/trips', {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+          body: JSON.stringify({ id: activeTrip.id, miles, note, source: edited ? 'manual' : 'gps', end: true }),
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+      } catch (e) {
+        console.error(e); alert('Could not save the trip. Try again.');
+        btn.disabled = false; btn.textContent = 'Save trip'; tripBusy = false; return;
+      }
+      btn.disabled = false; btn.textContent = 'Save trip';
+      closeSaveSheet();
+      activeTrip = null; tripBusy = false;
+      await loadTrips();
+      renderMileage();
+    }
+
+    // Briefly flash a confirmation in the active card's meta line, then restore it.
+    let tripHintTimer = null;
+    function flashTripHint(msg) {
+      const el = document.getElementById('mi-active-meta');
+      if (!el) return;
+      el.textContent = msg;
+      el.classList.add('text-emerald-700', 'font-bold');
+      clearTimeout(tripHintTimer);
+      tripHintTimer = setTimeout(() => { el.classList.remove('text-emerald-700', 'font-bold'); renderMileage(); }, 2500);
+    }
+
+    document.getElementById('mi-start').addEventListener('click', startTrip);
+    document.getElementById('mi-addstop').addEventListener('click', addStopHere);
+    document.getElementById('mi-end').addEventListener('click', endTrip);
+    document.getElementById('save-close').addEventListener('click', closeSaveSheet);
+    document.getElementById('save-backdrop').addEventListener('click', closeSaveSheet);
+    document.getElementById('save-resume').addEventListener('click', closeSaveSheet);
+    document.getElementById('save-confirm').addEventListener('click', confirmSaveTrip);
+
+    // ----- render -----
+    function renderMileage() {
+      document.getElementById('mi-driver').textContent = driver || '—';
+
+      const hasOpen = !!activeTrip;
+      document.getElementById('mi-idle').classList.toggle('hidden', hasOpen);
+      document.getElementById('mi-active').classList.toggle('hidden', !hasOpen);
+      if (hasOpen) {
+        document.getElementById('mi-active-miles').innerHTML =
+          `${milesToText(activeTrip.miles)}<span class="text-2xl text-sf-ink/50 font-bold"> mi</span>`;
+        const sc = Number(activeTrip.stops) || 1;
+        document.getElementById('mi-active-meta').textContent =
+          `${sc} stop${sc === 1 ? '' : 's'} · started ${relTime(activeTrip.started_at)}`;
+      }
+
+      const now = Date.now();
+      const weekAgo = now - 7 * 86400000;
+      const monthStart = startOfMonth(now);
+      const mine = trips.filter(t => t.status === 'completed' && t.driver === driver);
+      const sumMi = list => list.reduce((s, t) => s + (Number(t.miles) || 0), 0);
+      const weekMi  = sumMi(mine.filter(t => new Date(t.started_at).getTime() >= weekAgo));
+      const monthMi = sumMi(mine.filter(t => new Date(t.started_at).getTime() >= monthStart));
+      document.getElementById('mi-week-mi').textContent  = milesToText(weekMi);
+      document.getElementById('mi-month-mi').textContent = milesToText(monthMi);
+      document.getElementById('mi-month-val').textContent = '$' + (monthMi * mileageRate).toFixed(2);
+
+      const listEl = document.getElementById('mi-trips');
+      if (!driver) {
+        listEl.innerHTML = '<div class="rounded-xl bg-white border border-black/10 p-6 text-center text-sf-ink/55 text-sm">Add your name to start logging trips.</div>';
+      } else if (mine.length === 0) {
+        listEl.innerHTML = '<div class="rounded-xl bg-white border border-black/10 p-6 text-center text-sf-ink/55 text-sm">No trips yet. Tap Start trip when you head out.</div>';
+      } else {
+        listEl.innerHTML = '';
+        for (const t of mine.slice(0, 60)) listEl.appendChild(tripRow(t));
+      }
+
+      // office roll-up (completed trips this month, by driver)
+      const byDriver = {};
+      for (const t of trips) {
+        if (t.status !== 'completed') continue;
+        if (new Date(t.started_at).getTime() < monthStart) continue;
+        const d = byDriver[t.driver] || (byDriver[t.driver] = { miles: 0, trips: 0 });
+        d.miles += Number(t.miles) || 0; d.trips += 1;
+      }
+      const rows = Object.entries(byDriver).sort((a, b) => b[1].miles - a[1].miles);
+      const rollEl = document.getElementById('mi-rollup');
+      if (rows.length === 0) {
+        rollEl.innerHTML = '<div class="p-6 text-center text-sm text-sf-ink/45">No trips logged this month yet.</div>';
+      } else {
+        const body = rows.map(([name, v]) => `
+          <tr class="border-t border-black/5">
+            <td class="px-4 py-2 font-semibold text-sm">${esc(name)}</td>
+            <td class="px-4 py-2 text-right text-sf-ink/55 text-sm tabular-nums">${v.trips}</td>
+            <td class="px-4 py-2 text-right font-bold tabular-nums">${milesToText(v.miles)}</td>
+            <td class="px-4 py-2 text-right font-bold text-emerald-700 tabular-nums">$${(v.miles * mileageRate).toFixed(2)}</td>
+          </tr>`).join('');
+        const totMi = rows.reduce((s, [, v]) => s + v.miles, 0);
+        rollEl.innerHTML = `
+          <table class="w-full text-sm">
+            <thead><tr class="text-[10px] uppercase tracking-wide text-sf-ink/50">
+              <th class="px-4 py-2 text-left">Driver</th><th class="px-4 py-2 text-right">Trips</th>
+              <th class="px-4 py-2 text-right">Miles</th><th class="px-4 py-2 text-right">Value</th>
+            </tr></thead><tbody>${body}</tbody>
+            <tfoot><tr class="border-t-2 border-black/10">
+              <td class="px-4 py-2 font-bold text-sm">Total</td><td></td>
+              <td class="px-4 py-2 text-right font-extrabold tabular-nums">${milesToText(totMi)}</td>
+              <td class="px-4 py-2 text-right font-extrabold text-emerald-700 tabular-nums">$${(totMi * mileageRate).toFixed(2)}</td>
+            </tr></tfoot>
+          </table>`;
+      }
+    }
+
+    function tripRow(t) {
+      const wrap = document.createElement('article');
+      wrap.className = 'rounded-xl bg-white border border-black/10 p-3.5 shadow-sm';
+      const miles = Number(t.miles) || 0;
+      const dur = t.ended_at ? durationText(t.started_at, t.ended_at) : '';
+      const dateStr = new Date(t.started_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      wrap.innerHTML = `
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <div class="font-bold tabular-nums">${milesToText(miles)} mi <span class="text-sf-ink/45 font-normal text-sm">· ${esc(dateStr)}${dur ? ' · ' + esc(dur) : ''}</span></div>
+            <div class="text-xs text-sf-ink/55 mt-0.5 ${t.note ? '' : 'hidden'}">${esc(t.note || '')}</div>
+          </div>
+          <div class="text-right flex-shrink-0 font-bold text-emerald-700 tabular-nums">$${(miles * mileageRate).toFixed(2)}</div>
+        </div>
+        <div class="mt-2 flex justify-end gap-3 items-center">
+          <button type="button" class="t-edit text-[11px] font-semibold text-sf-ink/45 hover:text-sf-red py-1">Edit miles</button>
+          <button type="button" class="t-del text-[11px] font-semibold text-sf-ink/45 hover:text-sf-red py-1">Delete</button>
+          <span class="t-confirm hidden items-center gap-2 text-[11px]">
+            <span class="text-sf-ink/70">Delete?</span>
+            <button type="button" class="t-yes font-bold text-sf-red">Yes</button>
+            <button type="button" class="t-no font-semibold text-sf-ink/55">Cancel</button>
+          </span>
+        </div>`;
+      const del = wrap.querySelector('.t-del');
+      const edit = wrap.querySelector('.t-edit');
+      const confirm = wrap.querySelector('.t-confirm');
+      del.addEventListener('click', () => { del.classList.add('hidden'); edit.classList.add('hidden'); confirm.classList.remove('hidden'); confirm.classList.add('inline-flex'); });
+      wrap.querySelector('.t-no').addEventListener('click', () => { confirm.classList.add('hidden'); confirm.classList.remove('inline-flex'); del.classList.remove('hidden'); edit.classList.remove('hidden'); });
+      wrap.querySelector('.t-yes').addEventListener('click', () => deleteTrip(t));
+      edit.addEventListener('click', () => editTrip(t));
+      return wrap;
+    }
+
+    async function deleteTrip(t) {
+      try {
+        const r = await fetch(`/api/trips?id=${encodeURIComponent(t.id)}`, { method: 'DELETE', credentials: 'same-origin' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        trips = trips.filter(x => x.id !== t.id);
+        renderMileage();
+      } catch (e) { console.error(e); alert('Delete failed. Try again.'); }
+    }
+
+    async function editTrip(t) {
+      const val = prompt('Miles for this trip:', milesToText(t.miles));
+      if (val == null) return;
+      const miles = parseFloat(val);
+      if (!Number.isFinite(miles) || miles < 0) { alert('Enter a number of miles.'); return; }
+      try {
+        const r = await fetch('/api/trips', {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+          body: JSON.stringify({ id: t.id, miles, source: 'manual' }),
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const d = await r.json();
+        if (d.trip) { const i = trips.findIndex(x => x.id === t.id); if (i >= 0) trips[i] = d.trip; }
+        renderMileage();
+      } catch (e) { console.error(e); alert('Update failed. Try again.'); }
+    }
 
     // ---------- helpers ----------
     function showView(which) {
