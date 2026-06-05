@@ -143,3 +143,9 @@ alter table public.trips enable row level security;
 insert into public.settings (key, value)
 values ('mileage_rate', '0.70')
 on conflict (key) do nothing;
+
+-- ---------------------------------------------------------------------------
+-- Merge the 'flyered' canvass status into 'contacted' — one "we've hit this
+-- complex" status. Safe to re-run; the dashboard also normalizes any stragglers
+-- on display. The check constraint still permits 'flyered' so this never fails.
+update public.complexes set canvass_status = 'contacted' where canvass_status = 'flyered';
