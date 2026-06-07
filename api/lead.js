@@ -51,7 +51,7 @@ export default async function handler(req, res) {
   if (!firstName || !phoneRaw || !email) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
-  if (!/.+@.+\..+/.test(email)) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: 'Invalid email' });
   }
 
