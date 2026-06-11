@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Renters Insurance from $5.50/mo — Anthony Gallant State Farm</title>
-  <meta name="description" content="Get covered in 5 minutes. Renters insurance from $5.50/month with Anthony Gallant, your local State Farm agent." />
+  <title>Homeowners Insurance Quotes in Minutes — Anthony Gallant State Farm</title>
+  <meta name="description" content="Protect your home with a local State Farm agent. Get a homeowners insurance quote in minutes from Anthony Gallant in Gastonia, NC." />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
   <!-- Open Graph for Facebook ad sharing -->
-  <meta property="og:title" content="Renters Insurance from $5.50/mo" />
-  <meta property="og:description" content="Your lease probably requires it. Get a quote in under 60 seconds." />
+  <meta property="og:title" content="Homeowners Insurance Quotes in Minutes" />
+  <meta property="og:description" content="Protect your biggest investment. Get a quote from a local State Farm agent in under 60 seconds." />
   <meta property="og:type" content="website" />
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -72,13 +72,13 @@
   <main class="mx-auto max-w-xl px-5">
 
     <section class="pt-8 pb-6">
-      <p class="text-xs font-semibold tracking-[0.18em] uppercase text-sf-red" data-i18n="eyebrow">Renters Insurance</p>
+      <p class="text-xs font-semibold tracking-[0.18em] uppercase text-sf-red" data-i18n="eyebrow">Homeowners Insurance</p>
       <h1 class="mt-3 text-4xl sm:text-5xl font-extrabold leading-[1.05] tracking-tight text-balance" data-i18n-html="hero">
-        Covered in 5 minutes.<br/>
-        <span class="text-sf-red">From $5.50/month.</span>
+        Your biggest investment,<br/>
+        <span class="text-sf-red">protected.</span>
       </h1>
       <p class="mt-4 text-lg text-sf-ink/75 text-balance" data-i18n="subhead">
-        Your lease probably requires renters insurance. I'll text you a quote, fast — no phone tag, no upsell.
+        Buying a home, switching carriers, or just paying too much? I'll text you a homeowners quote, fast — no phone tag, no upsell.
       </p>
     </section>
 
@@ -112,12 +112,15 @@
             </select>
           </div>
           <div>
-            <label for="community" class="block text-sm font-semibold text-sf-ink" data-i18n="lbl_community">Apartment community (optional)</label>
-            <input id="community" name="community" type="text" list="complex-list" autocomplete="off"
-              placeholder="Start typing your community…" data-i18n-ph="community_ph"
+            <label for="address" class="block text-sm font-semibold text-sf-ink" data-i18n="lbl_address">Home address (optional)</label>
+            <input id="address" name="address" type="text" autocomplete="street-address"
+              placeholder="123 Main St, Gastonia" data-i18n-ph="address_ph"
               class="mt-1 w-full rounded-lg border border-black/15 px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
-            <datalist id="complex-list"></datalist>
+            <p class="mt-1 text-xs text-sf-ink/50" data-i18n="address_hint">Helps us quote the right home — skip it if you'd rather share by text.</p>
           </div>
+
+          <!-- Product line — tells the server this is a homeowners lead -->
+          <input type="hidden" name="product" value="homeowners" />
 
           <!-- Hidden source tracking -->
           <input type="hidden" id="utm_source" name="utm_source" />
@@ -161,12 +164,12 @@
     <section class="pb-10">
       <div class="grid grid-cols-3 gap-3 text-center">
         <div class="rounded-xl bg-white border border-black/10 p-3">
-          <div class="text-xl font-extrabold text-sf-red">$300K+</div>
-          <div class="text-xs text-sf-ink/65 mt-1 leading-tight" data-i18n="pillar1">Liability protection</div>
+          <div class="text-xl font-extrabold text-sf-red" data-i18n="pillar1_big">Local</div>
+          <div class="text-xs text-sf-ink/65 mt-1 leading-tight" data-i18n="pillar1">Gastonia agent you can call</div>
         </div>
         <div class="rounded-xl bg-white border border-black/10 p-3">
           <div class="text-xl font-extrabold text-sf-red">5 min</div>
-          <div class="text-xs text-sf-ink/65 mt-1 leading-tight" data-i18n="pillar2">To get covered</div>
+          <div class="text-xs text-sf-ink/65 mt-1 leading-tight" data-i18n="pillar2">To get a quote</div>
         </div>
         <div class="rounded-xl bg-white border border-black/10 p-3">
           <div class="text-xl font-extrabold text-sf-red">24/7</div>
@@ -179,10 +182,10 @@
     <section class="pb-10">
       <h2 class="text-2xl font-extrabold tracking-tight" data-i18n="covered_h">What's covered</h2>
       <ul class="mt-4 space-y-3 text-sf-ink/85">
-        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov1"><strong class="text-sf-ink">Your stuff.</strong> TVs, clothes, furniture, laptops, gaming consoles, bikes.</span></li>
-        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov2"><strong class="text-sf-ink">Damage from fire, smoke, water, theft, wind.</strong></span></li>
-        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov3"><strong class="text-sf-ink">$300,000+ liability</strong> if someone's hurt in your unit or you accidentally damage the building.</span></li>
-        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov4"><strong class="text-sf-ink">Loss of use.</strong> Hotel costs if your unit becomes unlivable.</span></li>
+        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov1"><strong class="text-sf-ink">Your house.</strong> The structure itself — roof, walls, garage, everything attached.</span></li>
+        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov2"><strong class="text-sf-ink">Your stuff.</strong> Furniture, electronics, clothes — damage from fire, smoke, water, theft, wind, hail.</span></li>
+        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov3"><strong class="text-sf-ink">Liability protection</strong> if someone's hurt on your property.</span></li>
+        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov4"><strong class="text-sf-ink">Loss of use.</strong> Hotel costs if a covered loss makes your home unlivable.</span></li>
       </ul>
     </section>
 
@@ -200,10 +203,10 @@
       </div>
     </section>
 
-    <!-- Cross-sell: homeowners -->
+    <!-- Cross-sell: renters -->
     <section class="pb-12 text-center text-sm text-sf-ink/65">
-      <span data-i18n="cross_sell">Own your home?</span>
-      <a href="/homeowners" class="font-semibold text-sf-red hover:underline" data-i18n="cross_link">Get a homeowners quote →</a>
+      <span data-i18n="cross_sell">Renting instead?</span>
+      <a href="/" class="font-semibold text-sf-red hover:underline" data-i18n="cross_link">Renters insurance from $5.50/mo →</a>
     </section>
 
     <footer class="pb-10 text-xs text-sf-ink/50 text-center">
@@ -214,8 +217,8 @@
   <script>
     // ---------- i18n ----------
     // English is the markup default; we capture it from the DOM, and only the
-    // Spanish strings live here. NOTE: Spanish copy should be reviewed by a
-    // native speaker (esp. the consent line) before this is considered final.
+    // Spanish/Creole strings live here. NOTE: both should be reviewed by native
+    // speakers (esp. the consent line) before this is considered final.
     const I18N = {
       en: {
         _title: document.title,
@@ -225,69 +228,73 @@
         _verify: 'Please complete the verification below.',
       },
       es: {
-        _title: 'Seguro para inquilinos desde $5.50/mes — Anthony Gallant State Farm',
+        _title: 'Seguro de propietarios de vivienda en minutos — Anthony Gallant State Farm',
         _sending: 'Enviando…',
         _fillAll: 'Por favor completa todos los campos.',
         _err: 'Algo salió mal. Por favor llama al (704) 853-8001.',
         _verify: 'Por favor completa la verificación.',
-        eyebrow: 'Seguro para inquilinos',
-        hero: 'Asegurado en 5 minutos.<br/><span class="text-sf-red">Desde $5.50/mes.</span>',
-        subhead: 'Tu contrato probablemente requiere seguro para inquilinos. Te enviaré una cotización rápido, sin llamadas perdidas ni presión.',
+        eyebrow: 'Seguro de propietarios',
+        hero: 'Tu mayor inversión,<br/><span class="text-sf-red">protegida.</span>',
+        subhead: '¿Comprando casa, cambiando de aseguradora, o pagando demasiado? Te enviaré una cotización rápido, sin llamadas perdidas ni presión.',
         lbl_firstName: 'Nombre',
         lbl_phone: 'Teléfono celular',
         lbl_email: 'Correo electrónico',
         lbl_language: 'Idioma que hablas',
-        lbl_community: 'Comunidad de apartamentos (opcional)',
-        community_ph: 'Empieza a escribir tu comunidad…',
+        lbl_address: 'Dirección de tu casa (opcional)',
+        address_ph: '123 Main St, Gastonia',
+        address_hint: 'Nos ayuda a cotizar la casa correcta — puedes compartirla por texto si prefieres.',
         btn_submit: 'Envíame mi cotización',
         consent: 'Al enviar, aceptas que Anthony Gallant State Farm puede comunicarse contigo por texto y correo electrónico sobre tu cotización. Pueden aplicarse tarifas estándar. Sin spam.',
         success_h: '¡Listo! Revisa tu teléfono.',
         success_p: 'Anthony te enviará un mensaje dentro de 5 minutos en horario de oficina.',
-        pillar1: 'Protección de responsabilidad',
-        pillar2: 'Para asegurarte',
+        pillar1_big: 'Local',
+        pillar1: 'Agente en Gastonia a quien puedes llamar',
+        pillar2: 'Para cotizar',
         pillar3: 'Soporte de reclamos',
         covered_h: 'Qué cubre',
-        cov1: '<strong class="text-sf-ink">Tus cosas.</strong> TVs, ropa, muebles, laptops, consolas, bicicletas.',
-        cov2: '<strong class="text-sf-ink">Daños por incendio, humo, agua, robo y viento.</strong>',
-        cov3: '<strong class="text-sf-ink">$300,000+ de responsabilidad civil</strong> si alguien se lastima en tu apartamento o dañas el edificio accidentalmente.',
-        cov4: '<strong class="text-sf-ink">Pérdida de uso.</strong> Costos de hotel si tu apartamento queda inhabitable.',
+        cov1: '<strong class="text-sf-ink">Tu casa.</strong> La estructura misma — techo, paredes, garaje, todo lo adjunto.',
+        cov2: '<strong class="text-sf-ink">Tus cosas.</strong> Muebles, electrónicos, ropa — daños por incendio, humo, agua, robo, viento y granizo.',
+        cov3: '<strong class="text-sf-ink">Protección de responsabilidad civil</strong> si alguien se lastima en tu propiedad.',
+        cov4: '<strong class="text-sf-ink">Pérdida de uso.</strong> Costos de hotel si un daño cubierto deja tu casa inhabitable.',
         agent_role: 'Agente de State Farm · Gastonia, NC',
-        cross_sell: '¿Eres dueño de tu casa?',
-        cross_link: 'Cotiza tu seguro de propietarios →',
+        cross_sell: '¿Rentas en vez de ser dueño?',
+        cross_link: 'Seguro para inquilinos desde $5.50/mes →',
         footer: 'Anthony Gallant, Agente de State Farm. State Farm Mutual Automobile Insurance Company, Bloomington, IL. La cobertura está sujeta a términos, condiciones y disponibilidad.',
       },
       // Haitian Creole (Kreyòl Ayisyen). DRAFT — must be reviewed by a native
       // speaker before public use, especially the consent line.
       ht: {
-        _title: 'Asirans pou Lokatè apati $5.50/mwa — Anthony Gallant State Farm',
+        _title: 'Asirans pou Mèt Kay nan kèk minit — Anthony Gallant State Farm',
         _sending: 'Ap voye…',
         _fillAll: 'Tanpri ranpli tout chan yo.',
         _err: 'Gen yon pwoblèm ki rive. Tanpri rele (704) 853-8001.',
         _verify: 'Tanpri konplete verifikasyon an.',
-        eyebrow: 'Asirans pou Lokatè',
-        hero: 'Asire nan 5 minit.<br/><span class="text-sf-red">Apati $5.50/mwa.</span>',
-        subhead: 'Kontra lwaye w la pwobableman mande asirans pou lokatè. M ap voye yon pri ba ou byen vit, san pèdi tan, san presyon.',
+        eyebrow: 'Asirans pou Mèt Kay',
+        hero: 'Pi gwo envestisman w lan,<br/><span class="text-sf-red">pwoteje.</span>',
+        subhead: 'W ap achte yon kay, chanje konpayi asirans, oswa w ap peye twòp? M ap voye yon pri ba ou byen vit, san pèdi tan, san presyon.',
         lbl_firstName: 'Prenon',
         lbl_phone: 'Telefòn selilè',
         lbl_email: 'Imèl',
         lbl_language: 'Lang ou pale',
-        lbl_community: 'Kominote apatman (opsyonèl)',
-        community_ph: 'Kòmanse tape non kominote w…',
+        lbl_address: 'Adrès kay ou (opsyonèl)',
+        address_ph: '123 Main St, Gastonia',
+        address_hint: 'Sa ede nou bay pri pou bon kay la — ou ka voye l pa tèks si w prefere.',
         btn_submit: 'Voye pri m ban mwen',
         consent: 'Lè w voye sa, ou dakò pou Anthony Gallant State Farm kapab kontakte w pa tèks ak imèl konsènan pri w la. Tarif estanda kapab aplike. Pa gen spam.',
         success_h: 'Nou resevwa l — tcheke telefòn ou.',
         success_p: 'Anthony ap voye yon mesaj ba ou nan 5 minit pandan lè biwo a louvri.',
-        pillar1: 'Pwoteksyon responsablite',
-        pillar2: 'Pou w jwenn kouvèti',
+        pillar1_big: 'Lokal',
+        pillar1: 'Ajan nan Gastonia ou ka rele',
+        pillar2: 'Pou jwenn yon pri',
         pillar3: 'Sipò pou reklamasyon',
         covered_h: 'Sa ki kouvri',
-        cov1: '<strong class="text-sf-ink">Bagay ou yo.</strong> Televizyon, rad, mèb, laptop, konsòl jwèt, bisiklèt.',
-        cov2: '<strong class="text-sf-ink">Domaj akòz dife, lafimen, dlo, vòl, ak van.</strong>',
-        cov3: '<strong class="text-sf-ink">$300,000+ responsablite</strong> si yon moun blese nan apatman w oswa ou domaje bilding lan san fè espre.',
-        cov4: '<strong class="text-sf-ink">Pèt itilizasyon.</strong> Frè otèl si apatman w pa ka abite ankò.',
+        cov1: '<strong class="text-sf-ink">Kay ou a.</strong> Estrikti a li menm — do kay, mi, garaj, tout sa ki tache.',
+        cov2: '<strong class="text-sf-ink">Bagay ou yo.</strong> Mèb, elektwonik, rad — domaj akòz dife, lafimen, dlo, vòl, van, ak lagrèl.',
+        cov3: '<strong class="text-sf-ink">Pwoteksyon responsablite</strong> si yon moun blese sou pwopriyete w.',
+        cov4: '<strong class="text-sf-ink">Pèt itilizasyon.</strong> Frè otèl si yon domaj ki kouvri fè kay ou pa ka abite.',
         agent_role: 'Ajan State Farm · Gastonia, NC',
-        cross_sell: 'Ou se mèt kay ou?',
-        cross_link: 'Jwenn yon pri pou asirans kay →',
+        cross_sell: 'Ou se lokatè pito?',
+        cross_link: 'Asirans pou lokatè apati $5.50/mwa →',
         footer: 'Anthony Gallant, Ajan State Farm. State Farm Mutual Automobile Insurance Company, Bloomington, IL. Kouvèti a sijè a tèm, kondisyon, ak disponiblite.',
       },
     };
@@ -303,7 +310,7 @@
       const p = new URLSearchParams(location.search);
       const explicit = (p.get('lang') || '').toLowerCase();
       if (['en','es','ht'].includes(explicit)) return explicit;
-      const camp = (p.get('utm_campaign') || '').toLowerCase();      // e.g. renters_es / renters_ht
+      const camp = (p.get('utm_campaign') || '').toLowerCase();      // e.g. homeowners_es / homeowners_ht
       if (camp.includes('_ht') || camp.endsWith('ht')) return 'ht';
       if (camp.includes('_es') || camp.endsWith('es')) return 'es';
       if (camp.includes('_en') || camp.endsWith('en')) return 'en';
@@ -360,18 +367,6 @@
     // Once the visitor picks a spoken language, stop auto-syncing it to the toggle.
     const langSelEl = document.getElementById('language');
     if (langSelEl) langSelEl.addEventListener('change', () => { langSelEl.dataset.touched = '1'; });
-
-    // Populate the apartment-community picker from the public complex list.
-    fetch('/api/complexes-public')
-      .then(r => (r.ok ? r.json() : { complexes: [] }))
-      .then(d => {
-        const dl = document.getElementById('complex-list');
-        if (!dl || !Array.isArray(d.complexes)) return;
-        dl.innerHTML = d.complexes
-          .map(c => `<option value="${String(c.name || '').replace(/"/g, '&quot;')}"></option>`)
-          .join('');
-      })
-      .catch(() => {});
 
     // ---------- bot protection (Cloudflare Turnstile) ----------
     // Site key comes from /api/config; the widget renders only when one is set,

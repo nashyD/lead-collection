@@ -149,3 +149,12 @@ on conflict (key) do nothing;
 -- complex" status. Safe to re-run; the dashboard also normalizes any stragglers
 -- on display. The check constraint still permits 'flyered' so this never fails.
 update public.complexes set canvass_status = 'contacted' where canvass_status = 'flyered';
+
+-- ---------------------------------------------------------------------------
+-- Product line for each lead. The renters landing page (/) omits it (server
+-- defaults to 'renters'); the homeowners page (/homeowners) sends 'homeowners'.
+-- Whitelisted server-side before insert. 'address' is the self-reported home
+-- address from the homeowners form (optional free text — never required).
+alter table public.leads add column if not exists product text not null default 'renters';
+alter table public.leads add column if not exists address text default '';
+create index if not exists leads_product_idx on public.leads (product);
