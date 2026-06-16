@@ -957,7 +957,8 @@
       // uncluttered while renters remain the default product.
       const productBadge = card.querySelector('.product-badge');
       if (productBadge && lead.product && lead.product !== 'renters') {
-        productBadge.textContent = lead.product === 'homeowners' ? 'Home' : lead.product;
+        const PRODUCT_BADGES = { homeowners: 'Home', auto: 'Auto' };
+        productBadge.textContent = PRODUCT_BADGES[lead.product] || lead.product;
         productBadge.classList.remove('hidden');
       }
       card.querySelector('.received-at').textContent = relTime(lead.created_at);
@@ -975,11 +976,12 @@
       const src = [lead.source, lead.medium, lead.campaign].filter(Boolean).join(' / ') || 'direct';
       card.querySelector('.source-line').textContent = src;
 
-      // Location line: the apartment community the renter picked on the form
-      // (complex_id resolved to its name, falling back to typed-in free text),
-      // or the home address a homeowners lead entered. Hidden when neither.
+      // Detail line: whatever the lead self-reported on their form — the renter's
+      // apartment community (complex_id resolved to its name, falling back to
+      // typed-in free text), the homeowner's address, or the auto lead's vehicle.
+      // Hidden when none was given.
       const complexName = (lead.complex_id && (complexes.find(c => c.id === lead.complex_id) || {}).name)
-        || lead.complex_other || lead.address || '';
+        || lead.complex_other || lead.address || lead.vehicle || '';
       const complexLine = card.querySelector('.complex-line');
       if (complexName) {
         card.querySelector('.complex-name').textContent = complexName;

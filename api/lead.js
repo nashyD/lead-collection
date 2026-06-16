@@ -15,7 +15,7 @@
 const OFFICE_PHONE = '(704) 853-8001';
 const FROM_NAME = 'Anthony Gallant State Farm';
 const LANGUAGE_LABELS = { en: 'English', es: 'Spanish', ht: 'Haitian Creole' };
-const PRODUCT_LABELS = { renters: 'renters', homeowners: 'homeowners' };
+const PRODUCT_LABELS = { renters: 'renters', homeowners: 'homeowners', auto: 'auto' };
 
 export default async function handler(req, res) {
   // CORS (in case the form is ever hosted on a different domain)
@@ -86,6 +86,9 @@ export default async function handler(req, res) {
   // Self-reported home address (homeowners form only, optional).
   const address = String(body.address || '').trim().slice(0, 200);
 
+  // Self-reported vehicle — year/make/model (auto form only, optional).
+  const vehicle = String(body.vehicle || '').trim().slice(0, 200);
+
   const lead = {
     firstName,
     phone: phoneE164,
@@ -97,6 +100,7 @@ export default async function handler(req, res) {
     language,
     product,
     address,
+    vehicle,
     receivedAt: new Date().toISOString(),
     userAgent: req.headers['user-agent'] || '',
     ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '',
@@ -162,6 +166,7 @@ async function saveLeadToSupabase(lead) {
     language:   lead.language,
     product:    lead.product,
     address:    lead.address,
+    vehicle:    lead.vehicle,
     source:     lead.source,
     medium:     lead.medium,
     campaign:   lead.campaign,
@@ -205,7 +210,7 @@ async function saveLeadToSupabase(lead) {
   // Columns that may not exist in the DB yet (pending migrations). If the insert
   // fails because one is missing, drop it and retry so a lead is never lost. The
   // office email still carries the value, and rows store it once the column exists.
-  const OPTIONAL_COLS = ['language', 'product', 'address'];
+  const OPTIONAL_COLS = ['language', 'product', 'address', 'vehicle'];
   let resp = await insert(row);
   while (!resp.ok) {
     const errText = await resp.text();
@@ -268,6 +273,7 @@ async function emailOffice(lead, recipients) {
         <tr><td style="padding:6px 0;color:#666;">Product</td><td style="padding:6px 0;font-weight:700;text-transform:capitalize;">${escapeHtml(productLabel)}</td></tr>
         <tr><td style="padding:6px 0;color:#666;">Speaks</td><td style="padding:6px 0;font-weight:700;color:#E22925;">${escapeHtml(LANGUAGE_LABELS[lead.language] || lead.language)}</td></tr>
         ${lead.address ? `<tr><td style="padding:6px 0;color:#666;">Address</td><td style="padding:6px 0;">${escapeHtml(lead.address)}</td></tr>` : ''}
+        ${lead.vehicle ? `<tr><td style="padding:6px 0;color:#666;">Vehicle</td><td style="padding:6px 0;">${escapeHtml(lead.vehicle)}</td></tr>` : ''}
         <tr><td style="padding:6px 0;color:#666;">Phone</td><td style="padding:6px 0;font-weight:600;"><a href="sms:${lead.phone}">${lead.phone}</a> · <a href="tel:${lead.phone}">call</a></td></tr>
         <tr><td style="padding:6px 0;color:#666;">Email</td><td style="padding:6px 0;"><a href="mailto:${lead.email}">${escapeHtml(lead.email)}</a></td></tr>
         <tr><td style="padding:6px 0;color:#666;">Source</td><td style="padding:6px 0;">${escapeHtml(lead.source)}${lead.campaign ? ' / ' + escapeHtml(lead.campaign) : ''}</td></tr>

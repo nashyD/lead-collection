@@ -158,3 +158,8 @@ update public.complexes set canvass_status = 'contacted' where canvass_status = 
 alter table public.leads add column if not exists product text not null default 'renters';
 alter table public.leads add column if not exists address text default '';
 create index if not exists leads_product_idx on public.leads (product);
+
+-- ---------------------------------------------------------------------------
+-- Self-reported vehicle (year/make/model) from the auto funnel (/auto, optional
+-- free text — never required). Mirrors the homeowners 'address' field.
+alter table public.leads add column if not exists vehicle text default '';
