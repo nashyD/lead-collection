@@ -207,16 +207,28 @@ async function saveLeadToSupabase(lead) {
     body: JSON.stringify(payload),
   });
 
-  // Columns that may not exist in the DB yet (pending migrations). If the insert
-  // fails because one is missing, drop it and retry so a lead is never lost. The
-  // office email still carries the value, and rows store it once the column exists.
-  const OPTIONAL_COLS = ['language', 'product', 'address', 'vehicle'];
+  // Columns added by later migrations that may not exist yet in a given DB.
+  // Everything NOT in this list (first_name/phone/email/source/medium/campaign/
+  // user_agent/ip) is part of the original schema and always present.
+  const OPTIONAL_COLS = ['language', 'product', 'address', 'vehicle', 'complex_id', 'complex_other'];
+
+  // Insert with a self-healing retry so a paid lead is never lost to a schema
+  // that's mid-migration:
+  //   1. If PostgREST names a missing optional column, drop just that one and retry.
+  //   2. If it fails without naming a known column (wording changed, or several
+  //      are missing at once), strip ALL optional columns and retry the core row.
+  //   3. If even the core-only insert fails, it's a real error — throw.
   let resp = await insert(row);
   while (!resp.ok) {
     const errText = await resp.text();
-    const missing = OPTIONAL_COLS.find(c => c in row && new RegExp(`\\b${c}\\b`, 'i').test(errText));
-    if (!missing) throw new Error(`Supabase ${resp.status}: ${errText}`);
-    delete row[missing];
+    const named = OPTIONAL_COLS.find(c => c in row && new RegExp(`\\b${c}\\b`, 'i').test(errText));
+    if (named) {
+      delete row[named];
+    } else if (OPTIONAL_COLS.some(c => c in row)) {
+      OPTIONAL_COLS.forEach(c => delete row[c]);
+    } else {
+      throw new Error(`Supabase ${resp.status}: ${errText}`);
+    }
     resp = await insert(row);
   }
 }

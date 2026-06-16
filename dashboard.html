@@ -953,12 +953,12 @@
         const label = LANG_BADGES[lead.language];
         if (label) { langBadge.textContent = label; langBadge.classList.remove('hidden'); }
       }
-      // Product badge — only shown for non-renters leads so the board stays
-      // uncluttered while renters remain the default product.
+      // Product badge — every lead shows its insurance type. Leads predating the
+      // product column (null) default to Renters, the original sole product.
       const productBadge = card.querySelector('.product-badge');
-      if (productBadge && lead.product && lead.product !== 'renters') {
-        const PRODUCT_BADGES = { homeowners: 'Home', auto: 'Auto' };
-        productBadge.textContent = PRODUCT_BADGES[lead.product] || lead.product;
+      if (productBadge) {
+        const PRODUCT_BADGES = { renters: 'Renters', homeowners: 'Home', auto: 'Auto' };
+        productBadge.textContent = PRODUCT_BADGES[lead.product] || PRODUCT_BADGES.renters;
         productBadge.classList.remove('hidden');
       }
       card.querySelector('.received-at').textContent = relTime(lead.created_at);
