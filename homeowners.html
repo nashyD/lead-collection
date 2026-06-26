@@ -7,6 +7,29 @@
   <meta name="description" content="Protect your home with a local State Farm agent. Get a homeowners insurance quote in minutes from Anthony Gallant in Gastonia, NC." />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="canonical" href="https://www.gallantrenters.com/homeowners" />
+
+  <!-- Local-business structured data (helps local search + Google Ads quality). Confirm the office address/hours with Anthony. -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "InsuranceAgency",
+    "name": "Anthony Gallant State Farm",
+    "image": "https://www.gallantrenters.com/anthony.jpg",
+    "url": "https://www.gallantrenters.com",
+    "telephone": "+1-704-853-8001",
+    "priceRange": "$",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "1004 Union Rd",
+      "addressLocality": "Gastonia",
+      "addressRegion": "NC",
+      "postalCode": "28054",
+      "addressCountry": "US"
+    },
+    "areaServed": "Gaston County, NC"
+  }
+  </script>
 
   <!-- Open Graph for Facebook ad sharing -->
   <meta property="og:title" content="Homeowners Insurance Quotes in Minutes" />
@@ -56,12 +79,12 @@
       </div>
       <div class="flex items-center gap-3">
         <!-- Language toggle -->
-        <div class="text-xs font-bold select-none flex items-center" aria-label="Language">
-          <button id="lang-en" type="button" class="hover:text-sf-red px-2 py-2 -my-1 inline-block">EN</button>
-          <span class="text-sf-ink/30">·</span>
-          <button id="lang-es" type="button" class="hover:text-sf-red px-2 py-2 -my-1 inline-block">ES</button>
-          <span class="text-sf-ink/30">·</span>
-          <button id="lang-ht" type="button" class="hover:text-sf-red px-2 py-2 -my-1 inline-block">HT</button>
+        <div class="text-xs font-bold select-none flex items-center" role="group" aria-label="Language">
+          <button id="lang-en" type="button" aria-label="View in English" class="hover:text-sf-red px-2 py-2 -my-1 inline-block">EN</button>
+          <span class="text-sf-ink/30" aria-hidden="true">·</span>
+          <button id="lang-es" type="button" aria-label="Ver en español" class="hover:text-sf-red px-2 py-2 -my-1 inline-block">ES</button>
+          <span class="text-sf-ink/30" aria-hidden="true">·</span>
+          <button id="lang-ht" type="button" aria-label="Gade an Kreyòl" class="hover:text-sf-red px-2 py-2 -my-1 inline-block">HT</button>
         </div>
         <a href="tel:+17048538001" class="text-sm font-semibold text-sf-ink hover:text-sf-red inline-flex items-center min-h-[44px]">(704) 853-8001</a>
       </div>

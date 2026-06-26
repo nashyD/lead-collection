@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+# The leads dashboard is private (also noindex via meta); keep it and the API out of the index.
+Disallow: /dashboard
+Disallow: /api/
+
+Sitemap: https://www.gallantrenters.com/sitemap.xml
