@@ -93,6 +93,11 @@ export default async function handler(req, res) {
   // Self-reported vehicle — year/make/model (auto form only, optional).
   const vehicle = String(body.vehicle || '').trim().slice(0, 200);
 
+  // The exact consent language the visitor agreed to (sent by the form). Stored
+  // with a server timestamp + the ip/user-agent captured below, as TCPA
+  // proof-of-consent for the text/email outreach. Capped; optional/fail-soft.
+  const consentText = String(body.consent_text || '').trim().slice(0, 600);
+
   const lead = {
     firstName,
     phone: phoneE164,
@@ -106,6 +111,7 @@ export default async function handler(req, res) {
     product,
     address,
     vehicle,
+    consentText,
     receivedAt: new Date().toISOString(),
     userAgent: req.headers['user-agent'] || '',
     ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '',
@@ -115,6 +121,21 @@ export default async function handler(req, res) {
   // the all-sinks-failed path below, as a last-resort recovery trail — we don't
   // want customer name/phone/email/IP sitting in function logs on every request.
   console.log('lead_received', JSON.stringify({ source, campaign, language, product, hasCommunity: !!community, hasDealership: !!dealership }));
+
+  // Suppress an accidental duplicate (a double-tap or a network retry): if this
+  // exact lead (same phone + email + product) already landed in the last few
+  // minutes, treat it as success WITHOUT a second row or a second office alert.
+  // Fail-OPEN — any error here must never block a genuine lead.
+  if (process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    try {
+      if (await isRecentDuplicate(lead)) {
+        console.log('lead_duplicate_suppressed', JSON.stringify({ product }));
+        return res.status(200).json({ ok: true, duplicate: true });
+      }
+    } catch (e) {
+      console.error('dedupe_check_failed', e);  // fail open — proceed to capture
+    }
+  }
 
   // Capture the lead in at least one durable place. Each sink is fail-soft, but
   // if NONE succeeds we must not tell the visitor "we got it" (a paid lead is
@@ -179,6 +200,13 @@ async function saveLeadToSupabase(lead) {
     ip:         lead.ip,
   };
 
+  // TCPA proof-of-consent: the exact language agreed to + a server timestamp
+  // (paired with the ip/user_agent above). Optional column — see OPTIONAL_COLS.
+  if (lead.consentText) {
+    row.consent_text = lead.consentText;
+    row.consented_at = new Date().toISOString();
+  }
+
   // Resolve the self-reported community to a known complex (case-insensitive
   // exact match); otherwise keep it as free text. Never block the insert.
   if (lead.community) {
@@ -240,7 +268,7 @@ async function saveLeadToSupabase(lead) {
   // Columns added by later migrations that may not exist yet in a given DB.
   // Everything NOT in this list (first_name/phone/email/source/medium/campaign/
   // user_agent/ip) is part of the original schema and always present.
-  const OPTIONAL_COLS = ['language', 'product', 'address', 'vehicle', 'complex_id', 'complex_other', 'dealership_id', 'dealership_other'];
+  const OPTIONAL_COLS = ['language', 'product', 'address', 'vehicle', 'complex_id', 'complex_other', 'dealership_id', 'dealership_other', 'consent_text', 'consented_at'];
 
   // Insert with a self-healing retry so a paid lead is never lost to a schema
   // that's mid-migration:
@@ -377,6 +405,31 @@ function ilikeExactFilter(value) {
   const likeEscaped = String(value).replace(/[\\%_]/g, c => '\\' + c); // SQL LIKE: \ % _
   const quoted = likeEscaped.replace(/[\\"]/g, c => '\\' + c);         // PostgREST quoting: \ "
   return `ilike."${quoted}"`;
+}
+
+// True if an identical lead (same phone + email + product) was already saved in
+// the last few minutes — i.e. a double-tap / retry rather than a fresh inquiry.
+// A correction (e.g. a changed email) is NOT a duplicate, so it still gets saved.
+// Matches only on the server-normalized phone (E.164: '+' + digits — no PostgREST
+// special chars), so the filter can't be injected. Throws on a failed query so
+// the caller can fail OPEN (treat as not-a-duplicate and save the lead).
+async function isRecentDuplicate(lead) {
+  const base = process.env.SUPABASE_URL.replace(/\/$/, '');
+  const sinceIso = new Date(Date.now() - 3 * 60 * 1000).toISOString();  // 3-minute window
+  const q = new URL(`${base}/rest/v1/leads`);
+  q.searchParams.set('select', 'email,product');
+  q.searchParams.set('phone', `eq.${lead.phone}`);
+  q.searchParams.set('created_at', `gte.${sinceIso}`);
+  q.searchParams.set('limit', '20');
+  const r = await fetch(q, {
+    headers: {
+      apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+  });
+  if (!r.ok) throw new Error(`dedupe query ${r.status}`);
+  const rows = await r.json();
+  return rows.some(x => (x.email || '') === lead.email && (x.product || 'renters') === lead.product);
 }
 
 // --- Turnstile -------------------------------------------------------------

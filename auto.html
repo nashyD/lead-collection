@@ -512,6 +512,9 @@
       }
 
       const payload = Object.fromEntries(fd.entries());
+      // Capture the exact consent language the visitor agreed to (TCPA proof).
+      const consentEl = document.querySelector('[data-i18n="consent"]');
+      if (consentEl) payload.consent_text = consentEl.textContent.trim();
       if (!payload.firstName || !payload.phone || !payload.email) {
         showError(escAttr(L._fillAll));
         return;

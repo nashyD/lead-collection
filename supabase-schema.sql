@@ -224,3 +224,12 @@ end $$;
 alter table public.leads
   add constraint leads_complex_id_fkey
   foreign key (complex_id) references public.complexes(id) on delete set null;
+
+-- ---------------------------------------------------------------------------
+-- TCPA proof-of-consent. The funnels text + email leads, so we store the exact
+-- consent language the visitor agreed to (consent_text) plus the server time it
+-- was captured (consented_at), alongside the ip + user_agent already on the row.
+-- Self-reported / fail-soft: /api/lead only sets these when the form sends the
+-- consent text, and the insert's optional-column retry tolerates their absence.
+alter table public.leads add column if not exists consent_text text default '';
+alter table public.leads add column if not exists consented_at timestamptz;
