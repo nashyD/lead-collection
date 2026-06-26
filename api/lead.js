@@ -8,9 +8,15 @@
 //   SUPABASE_SERVICE_ROLE_KEY    server-only key — never expose to the browser
 //   RESEND_API_KEY           from resend.com (free tier: 3,000/mo, 100/day)
 //   FROM_EMAIL                   e.g. leads@gallantrenters.com (must be a domain verified in Resend)
+//   META_PIXEL_ID                Meta pixel id (also served to the browser via /api/config)
+//   META_CAPI_TOKEN              Meta Conversions API token — SERVER-ONLY secret. When set (with
+//                                META_PIXEL_ID) a server-side Lead event is sent to Meta, deduped
+//                                with the browser pixel via a shared event_id. Unset = no-op.
 //
 // Office notification recipients are managed from the dashboard Settings panel and stored
 // in the Supabase `settings` table (key = notify_emails). No env var needed for them.
+
+import { createHash } from 'node:crypto';
 
 const OFFICE_PHONE = '(704) 853-8001';
 const FROM_NAME = 'Anthony Gallant State Farm';
@@ -169,6 +175,11 @@ export default async function handler(req, res) {
   } else {
     console.log('resend_not_configured_email_skipped');
   }
+
+  // Server-side Meta Conversions API (best-effort, fail-soft). Dormant unless
+  // META_PIXEL_ID + META_CAPI_TOKEN are set; deduped with the browser pixel via
+  // the shared event_id. Pure measurement — never affects lead capture/response.
+  await sendMetaCapiLead(lead, body, req).catch(e => console.error('meta_capi_failed', e));
 
   // Nowhere durable captured it — fail loudly so the visitor sees the "call us"
   // fallback instead of a false success.
@@ -430,6 +441,71 @@ async function isRecentDuplicate(lead) {
   if (!r.ok) throw new Error(`dedupe query ${r.status}`);
   const rows = await r.json();
   return rows.some(x => (x.email || '') === lead.email && (x.product || 'renters') === lead.product);
+}
+
+// Server-side Meta Conversions API "Lead" event. No-op unless META_PIXEL_ID +
+// META_CAPI_TOKEN are both set. PII (email/phone/first name) is SHA-256 hashed
+// per Meta's spec; ip/user-agent + the _fbp/_fbc cookies are sent as-is to lift
+// match quality. event_id (from the form) dedups this against the browser pixel
+// so the conversion is counted once. Throws on a non-2xx so the caller logs it;
+// the caller never lets a CAPI failure affect the lead response.
+async function sendMetaCapiLead(lead, body, req) {
+  const pixelId = process.env.META_PIXEL_ID;
+  const token = process.env.META_CAPI_TOKEN;
+  if (!pixelId || !token) return;  // not configured — skip silently
+
+  const hash = (s) => createHash('sha256').update(String(s == null ? '' : s).trim().toLowerCase()).digest('hex');
+  const cookies = parseCookies(req.headers?.cookie);
+  const phoneDigits = String(lead.phone || '').replace(/\D/g, '');  // e.g. 1XXXXXXXXXX (incl. country code)
+  const userData = {
+    em: [hash(lead.email)],
+    ph: [hash(phoneDigits)],
+    client_ip_address: String(lead.ip || '').split(',')[0].trim() || undefined,
+    client_user_agent: lead.userAgent || undefined,
+  };
+  if (lead.firstName) userData.fn = [hash(lead.firstName)];
+  if (cookies._fbp) userData.fbp = cookies._fbp;
+  if (cookies._fbc) userData.fbc = cookies._fbc;
+
+  const event = {
+    event_name: 'Lead',
+    event_time: Math.floor(Date.now() / 1000),
+    action_source: 'website',
+    user_data: userData,
+    custom_data: { content_name: lead.product || 'renters' },
+  };
+  const eventId = String(body?.event_id || '').slice(0, 100);
+  if (eventId) event.event_id = eventId;
+  const referer = req.headers?.referer || req.headers?.referrer;
+  if (referer) event.event_source_url = String(referer).slice(0, 500);
+
+  const url = `https://graph.facebook.com/v19.0/${encodeURIComponent(pixelId)}/events?access_token=${encodeURIComponent(token)}`;
+  // Bound the call so a slow/hung Meta API can't delay the visitor's success
+  // screen (the lead is already captured by now; this is pure measurement). An
+  // abort rejects → caught by the caller's .catch → fail-soft.
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), 3000);
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: [event] }),
+      signal: ac.signal,
+    });
+    if (!r.ok) throw new Error(`Meta CAPI ${r.status}: ${await r.text()}`);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Minimal Cookie-header parser (for the _fbp/_fbc Meta match cookies).
+function parseCookies(header) {
+  const out = {};
+  String(header || '').split(';').forEach(p => {
+    const i = p.indexOf('=');
+    if (i > -1) out[p.slice(0, i).trim()] = decodeURIComponent(p.slice(i + 1).trim());
+  });
+  return out;
 }
 
 // --- Turnstile -------------------------------------------------------------

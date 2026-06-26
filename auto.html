@@ -515,6 +515,10 @@
       // Capture the exact consent language the visitor agreed to (TCPA proof).
       const consentEl = document.querySelector('[data-i18n="consent"]');
       if (consentEl) payload.consent_text = consentEl.textContent.trim();
+      // Shared event id so the browser pixel and the server Conversions API dedup
+      // to ONE Lead conversion instead of double-counting.
+      const EVENT_ID = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(16).slice(2));
+      payload.event_id = EVENT_ID;
       if (!payload.firstName || !payload.phone || !payload.email) {
         showError(escAttr(L._fillAll));
         return;
@@ -547,7 +551,7 @@
         if (!res.ok) throw new Error('Bad response: ' + res.status);
         form.classList.add('hidden');
         showSuccess();
-        if (window.fbq) fbq('track', 'Lead', { content_name: LEAD_PRODUCT });
+        if (window.fbq) fbq('track', 'Lead', { content_name: LEAD_PRODUCT }, { eventID: EVENT_ID });
       } catch (err) {
         console.error(err);
         // Turnstile tokens are single-use — reset for a fresh one on retry.
