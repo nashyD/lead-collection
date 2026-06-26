@@ -104,6 +104,13 @@ export default async function handler(req, res) {
   // proof-of-consent for the text/email outreach. Capped; optional/fail-soft.
   const consentText = String(body.consent_text || '').trim().slice(0, 600);
 
+  // Tenant opt-in (renters partner channel): the resident agreed to have their
+  // proof of coverage sent to their apartment community to satisfy the lease.
+  // Only shown on the form when arriving via a partner QR / a community is picked.
+  // Accepts a real boolean or the form's checkbox string ('on'/'true'/'1').
+  const swp = body.share_with_property;
+  const shareWithProperty = swp === true || swp === 1 || ['on', 'true', '1', 'yes'].includes(String(swp).toLowerCase());
+
   const lead = {
     firstName,
     phone: phoneE164,
@@ -118,6 +125,7 @@ export default async function handler(req, res) {
     address,
     vehicle,
     consentText,
+    shareWithProperty,
     receivedAt: new Date().toISOString(),
     userAgent: req.headers['user-agent'] || '',
     ip: req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '',
@@ -218,6 +226,10 @@ async function saveLeadToSupabase(lead) {
     row.consented_at = new Date().toISOString();
   }
 
+  // Tenant opt-in to share proof of coverage with their apartment community.
+  // Only set when true so a DB missing the column (mid-migration) still inserts.
+  if (lead.shareWithProperty) row.share_with_property = true;
+
   // Resolve the self-reported community to a known complex (case-insensitive
   // exact match); otherwise keep it as free text. Never block the insert.
   if (lead.community) {
@@ -279,7 +291,7 @@ async function saveLeadToSupabase(lead) {
   // Columns added by later migrations that may not exist yet in a given DB.
   // Everything NOT in this list (first_name/phone/email/source/medium/campaign/
   // user_agent/ip) is part of the original schema and always present.
-  const OPTIONAL_COLS = ['language', 'product', 'address', 'vehicle', 'complex_id', 'complex_other', 'dealership_id', 'dealership_other', 'consent_text', 'consented_at'];
+  const OPTIONAL_COLS = ['language', 'product', 'address', 'vehicle', 'complex_id', 'complex_other', 'dealership_id', 'dealership_other', 'consent_text', 'consented_at', 'share_with_property'];
 
   // Insert with a self-healing retry so a paid lead is never lost to a schema
   // that's mid-migration:
@@ -353,6 +365,7 @@ async function emailOffice(lead, recipients) {
         <tr><td style="padding:6px 0;color:#666;width:120px;">Name</td><td style="padding:6px 0;font-weight:600;">${escapeHtml(lead.firstName)}</td></tr>
         <tr><td style="padding:6px 0;color:#666;">Product</td><td style="padding:6px 0;font-weight:700;text-transform:capitalize;">${escapeHtml(productLabel)}</td></tr>
         <tr><td style="padding:6px 0;color:#666;">Speaks</td><td style="padding:6px 0;font-weight:700;color:#E22925;">${escapeHtml(LANGUAGE_LABELS[lead.language] || lead.language)}</td></tr>
+        ${lead.shareWithProperty ? `<tr><td style="padding:6px 0;color:#666;">Share proof</td><td style="padding:6px 0;font-weight:700;color:#065F46;">Resident opted in — send proof to their community once bound</td></tr>` : ''}
         ${lead.address ? `<tr><td style="padding:6px 0;color:#666;">Address</td><td style="padding:6px 0;">${escapeHtml(lead.address)}</td></tr>` : ''}
         ${lead.vehicle ? `<tr><td style="padding:6px 0;color:#666;">Vehicle</td><td style="padding:6px 0;">${escapeHtml(lead.vehicle)}</td></tr>` : ''}
         ${lead.dealership ? `<tr><td style="padding:6px 0;color:#666;">Dealership</td><td style="padding:6px 0;">${escapeHtml(lead.dealership)}</td></tr>` : ''}

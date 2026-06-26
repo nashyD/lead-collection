@@ -233,3 +233,21 @@ alter table public.leads
 -- consent text, and the insert's optional-column retry tolerates their absence.
 alter table public.leads add column if not exists consent_text text default '';
 alter table public.leads add column if not exists consented_at timestamptz;
+
+-- ---------------------------------------------------------------------------
+-- Apartment-PARTNER channel. A leasing office (the gatekeeper who hands
+-- renters-insurance info to every new tenant) gets a contact email on its
+-- complex, so the dashboard can (a) hand proof-of-coverage back to the office
+-- when a resident opts in, and (b) send a monthly no-PII "N residents covered"
+-- recap. Managed from the dashboard Complexes tab.
+alter table public.complexes add column if not exists partner_email   text default '';
+alter table public.complexes add column if not exists partner_contact text default '';
+
+-- Tenant opt-in: a renter arriving via a partner QR may consent to have their
+-- proof of coverage sent to their apartment community to satisfy the lease.
+-- DISTINCT from consent_text above (that's TCPA consent to be contacted).
+-- proof_sent_at stamps when the office actually emailed the proof (null = not
+-- sent). Both optional/fail-soft — /api/lead's retry tolerates their absence.
+alter table public.leads add column if not exists share_with_property boolean not null default false;
+alter table public.leads add column if not exists proof_sent_at timestamptz;
+create index if not exists leads_share_with_property_idx on public.leads (share_with_property) where share_with_property;
