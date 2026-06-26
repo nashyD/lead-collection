@@ -244,7 +244,7 @@
 
     <footer class="pb-24 sm:pb-10 text-xs text-sf-ink/50 text-center">
       &copy; <span id="year"></span> <span data-i18n="footer">Anthony Gallant, State Farm Agent. State Farm Mutual Automobile Insurance Company, Bloomington, IL. Coverage subject to terms, conditions, and availability.</span>
-      <span id="tracking-notice" class="hidden block mt-2" data-i18n="tracking_notice">This site uses cookies and the Meta Pixel to measure ad performance.</span>
+      <span id="tracking-notice" class="hidden block mt-2" data-i18n="tracking_notice">This site uses cookies and ad-measurement tools (Meta, Google) to improve our ads.</span>
     </footer>
   </main>
 
@@ -303,7 +303,7 @@
         cross_sell: '¿Eres dueño de tu casa?',
         cross_link: 'Cotiza tu seguro de propietarios →',
         footer: 'Anthony Gallant, Agente de State Farm. State Farm Mutual Automobile Insurance Company, Bloomington, IL. La cobertura está sujeta a términos, condiciones y disponibilidad.',
-        tracking_notice: 'Este sitio usa cookies y el Meta Pixel para medir el rendimiento de los anuncios.',
+        tracking_notice: 'Este sitio usa cookies y herramientas de medición publicitaria (Meta, Google) para mejorar nuestros anuncios.',
       },
       // Haitian Creole (Kreyòl Ayisyen). DRAFT — must be reviewed by a native
       // speaker before public use, especially the consent line.
@@ -346,7 +346,7 @@
         cross_sell: 'Ou se mèt kay ou?',
         cross_link: 'Jwenn yon pri pou asirans kay →',
         footer: 'Anthony Gallant, Ajan State Farm. State Farm Mutual Automobile Insurance Company, Bloomington, IL. Kouvèti a sijè a tèm, kondisyon, ak disponiblite.',
-        tracking_notice: 'Sit sa a sèvi ak cookies ak Meta Pixel pou mezire pèfòmans piblisite yo.',
+        tracking_notice: 'Sit sa a sèvi ak cookies ak zouti mezi piblisite (Meta, Google) pou amelyore piblisite nou yo.',
       },
     };
 
@@ -449,6 +449,32 @@
       } catch (e) {}
     }
 
+    // ---------- analytics: Google (GA4 + Google Ads) ----------
+    // Loads gtag.js once when a GA4 measurement ID and/or a Google Ads
+    // conversion ID is configured (served via /api/config), exactly like the
+    // Meta pixel — the page works fine with neither set. A generate_lead (GA4)
+    // event + a conversion (Google Ads) fire only on a real submit success;
+    // no PII is ever sent.
+    let GOOGLE_ADS = { id: '', label: '' };
+    let gtagReady = false;
+    function initGoogleTags(ga4Id, adsId) {
+      if (gtagReady) return;
+      const primary = ga4Id || adsId;
+      if (!primary) return;
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(primary);
+      document.head.appendChild(s);
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { dataLayer.push(arguments); };
+      gtag('js', new Date());
+      if (ga4Id) gtag('config', ga4Id);
+      if (adsId) gtag('config', adsId);
+      gtagReady = true;
+      const tn = document.getElementById('tracking-notice');
+      if (tn) tn.classList.remove('hidden');
+    }
+
     // ---------- bot protection (Cloudflare Turnstile) ----------
     // Site key comes from /api/config; the widget renders only when one is set,
     // so the form still works while Turnstile isn't configured yet.
@@ -460,6 +486,11 @@
         cfg = cfg || {};
         // Meta Pixel loads only when an ID is configured; PageView fires here.
         if (cfg.metaPixelId) initMetaPixel(cfg.metaPixelId);
+        // Google tags (GA4 + Google Ads) — load only when configured; dormant otherwise.
+        if (cfg.ga4Id || cfg.googleAdsId) {
+          GOOGLE_ADS = { id: cfg.googleAdsId || '', label: cfg.googleAdsLabel || '' };
+          initGoogleTags(cfg.ga4Id || '', cfg.googleAdsId || '');
+        }
         if (!cfg.turnstileSiteKey) return;
         turnstileRequired = true;
         window.__tsLoad = () => {
@@ -560,6 +591,10 @@
         form.classList.add('hidden');
         showSuccess();
         if (window.fbq) fbq('track', 'Lead', { content_name: LEAD_PRODUCT }, { eventID: EVENT_ID });
+        if (window.gtag) {
+          gtag('event', 'generate_lead', { currency: 'USD', value: 0, product: LEAD_PRODUCT });
+          if (GOOGLE_ADS.id && GOOGLE_ADS.label) gtag('event', 'conversion', { send_to: GOOGLE_ADS.id + '/' + GOOGLE_ADS.label });
+        }
       } catch (err) {
         console.error(err);
         // Turnstile tokens are single-use — reset for a fresh one on retry.
