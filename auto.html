@@ -228,6 +228,7 @@
 
     <footer class="pb-24 sm:pb-10 text-xs text-sf-ink/50 text-center">
       &copy; <span id="year"></span> <span data-i18n="footer">Anthony Gallant, State Farm Agent. State Farm Mutual Automobile Insurance Company, Bloomington, IL. Coverage subject to terms, conditions, and availability.</span>
+      <span id="tracking-notice" class="hidden block mt-2" data-i18n="tracking_notice">This site uses cookies and the Meta Pixel to measure ad performance.</span>
     </footer>
   </main>
 
@@ -290,6 +291,7 @@
         cross_sell: '¿Aseguras también una casa o apartamento?',
         cross_link: 'Combina y ahorra →',
         footer: 'Anthony Gallant, Agente de State Farm. State Farm Mutual Automobile Insurance Company, Bloomington, IL. La cobertura está sujeta a términos, condiciones y disponibilidad.',
+        tracking_notice: 'Este sitio usa cookies y el Meta Pixel para medir el rendimiento de los anuncios.',
       },
       // Haitian Creole (Kreyòl Ayisyen). DRAFT — must be reviewed by a native
       // speaker before public use, especially the consent line.
@@ -336,6 +338,7 @@
         cross_sell: 'W ap asire yon kay oswa yon apatman tou?',
         cross_link: 'Konbine epi ekonomize →',
         footer: 'Anthony Gallant, Ajan State Farm. State Farm Mutual Automobile Insurance Company, Bloomington, IL. Kouvèti a sijè a tèm, kondisyon, ak disponiblite.',
+        tracking_notice: 'Sit sa a sèvi ak cookies ak Meta Pixel pou mezire pèfòmans piblisite yo.',
       },
     };
 
@@ -420,6 +423,24 @@
       })
       .catch(() => {});
 
+    // ---------- analytics: Meta (Facebook) Pixel ----------
+    // Injected only when META_PIXEL_ID is configured (served via /api/config),
+    // exactly like Turnstile — the page works fine with no pixel set. Fires a
+    // standard PageView on init; a Lead event fires on a real submit success
+    // (never on the honeypot path, and never carrying any PII).
+    function initMetaPixel(id) {
+      if (window.fbq) return;
+      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      try {
+        fbq('init', id);
+        fbq('track', 'PageView');
+        // Reveal the cookie/pixel disclosure only when the pixel actually loads,
+        // so the notice is always truthful (Meta's Business Tools terms require it).
+        const tn = document.getElementById('tracking-notice');
+        if (tn) tn.classList.remove('hidden');
+      } catch (e) {}
+    }
+
     // ---------- bot protection (Cloudflare Turnstile) ----------
     // Site key comes from /api/config; the widget renders only when one is set,
     // so the form still works while Turnstile isn't configured yet.
@@ -428,7 +449,10 @@
     fetch('/api/config')
       .then(r => (r.ok ? r.json() : {}))
       .then(cfg => {
-        if (!cfg || !cfg.turnstileSiteKey) return;
+        cfg = cfg || {};
+        // Meta Pixel loads only when an ID is configured; PageView fires here.
+        if (cfg.metaPixelId) initMetaPixel(cfg.metaPixelId);
+        if (!cfg.turnstileSiteKey) return;
         turnstileRequired = true;
         window.__tsLoad = () => {
           try {
@@ -454,6 +478,9 @@
     const errorBox = document.getElementById('lead-error');
     const phoneInput = document.getElementById('phone');
     const emailInput = document.getElementById('email');
+    // Product line for the conversion event (homeowners/auto carry a hidden
+    // product field; the renters page has none, so it defaults to 'renters').
+    const LEAD_PRODUCT = (document.querySelector('input[name="product"]') || {}).value || 'renters';
 
     function escAttr(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
     // Show an error in the live-region chip and scroll it into view (on mobile it
@@ -517,7 +544,7 @@
         if (!res.ok) throw new Error('Bad response: ' + res.status);
         form.classList.add('hidden');
         showSuccess();
-        // if (window.fbq) fbq('track', 'Lead');
+        if (window.fbq) fbq('track', 'Lead', { content_name: LEAD_PRODUCT });
       } catch (err) {
         console.error(err);
         // Turnstile tokens are single-use — reset for a fresh one on retry.
