@@ -56,14 +56,14 @@
       </div>
       <div class="flex items-center gap-3">
         <!-- Language toggle -->
-        <div class="text-xs font-bold select-none" aria-label="Language">
-          <button id="lang-en" type="button" class="hover:text-sf-red">EN</button>
+        <div class="text-xs font-bold select-none flex items-center" aria-label="Language">
+          <button id="lang-en" type="button" class="hover:text-sf-red px-2 py-2 -my-1 inline-block">EN</button>
           <span class="text-sf-ink/30">·</span>
-          <button id="lang-es" type="button" class="hover:text-sf-red">ES</button>
+          <button id="lang-es" type="button" class="hover:text-sf-red px-2 py-2 -my-1 inline-block">ES</button>
           <span class="text-sf-ink/30">·</span>
-          <button id="lang-ht" type="button" class="hover:text-sf-red">HT</button>
+          <button id="lang-ht" type="button" class="hover:text-sf-red px-2 py-2 -my-1 inline-block">HT</button>
         </div>
-        <a href="tel:+17048538001" class="text-sm font-semibold text-sf-ink hover:text-sf-red">(704) 853-8001</a>
+        <a href="tel:+17048538001" class="text-sm font-semibold text-sf-ink hover:text-sf-red inline-flex items-center min-h-[44px]">(704) 853-8001</a>
       </div>
     </div>
   </header>
@@ -71,35 +71,35 @@
   <!-- Hero -->
   <main class="mx-auto max-w-xl px-5">
 
-    <section class="pt-8 pb-6">
+    <section class="pt-5 pb-4 sm:pt-8 sm:pb-6">
       <p class="text-xs font-semibold tracking-[0.18em] uppercase text-sf-red" data-i18n="eyebrow">Renters Insurance</p>
       <h1 class="mt-3 text-4xl sm:text-5xl font-extrabold leading-[1.05] tracking-tight text-balance" data-i18n-html="hero">
         Covered in 5 minutes.<br/>
         <span class="text-sf-red">From $5.50/month.</span>
       </h1>
-      <p class="mt-4 text-lg text-sf-ink/75 text-balance" data-i18n="subhead">
+      <p class="mt-3 text-base sm:text-lg text-sf-ink/75 text-balance" data-i18n="subhead">
         Your lease probably requires renters insurance. I'll text you a quote, fast — no phone tag, no upsell.
       </p>
     </section>
 
     <!-- Lead form card -->
-    <section id="quote" class="mb-8">
+    <section id="quote" class="mb-6 sm:mb-8">
       <div class="rounded-2xl bg-white border border-black/10 shadow-sm p-5 sm:p-6">
         <form id="lead-form" class="space-y-4" novalidate>
           <div>
             <label for="firstName" class="block text-sm font-semibold text-sf-ink" data-i18n="lbl_firstName">First name</label>
-            <input id="firstName" name="firstName" type="text" required autocomplete="given-name"
+            <input id="firstName" name="firstName" type="text" required autocomplete="given-name" autocapitalize="words" enterkeyhint="next"
               class="mt-1 w-full rounded-lg border border-black/15 px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
           </div>
           <div>
             <label for="phone" class="block text-sm font-semibold text-sf-ink" data-i18n="lbl_phone">Mobile phone</label>
-            <input id="phone" name="phone" type="tel" required autocomplete="tel" inputmode="tel"
+            <input id="phone" name="phone" type="tel" required autocomplete="tel" inputmode="tel" enterkeyhint="next"
               placeholder="(704) 555-0123"
               class="mt-1 w-full rounded-lg border border-black/15 px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
           </div>
           <div>
             <label for="email" class="block text-sm font-semibold text-sf-ink" data-i18n="lbl_email">Email</label>
-            <input id="email" name="email" type="email" required autocomplete="email" inputmode="email"
+            <input id="email" name="email" type="email" required autocomplete="email" inputmode="email" enterkeyhint="next"
               class="mt-1 w-full rounded-lg border border-black/15 px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
           </div>
           <div>
@@ -113,7 +113,7 @@
           </div>
           <div>
             <label for="community" class="block text-sm font-semibold text-sf-ink" data-i18n="lbl_community">Apartment community (optional)</label>
-            <input id="community" name="community" type="text" list="complex-list" autocomplete="off"
+            <input id="community" name="community" type="text" list="complex-list" autocomplete="off" enterkeyhint="send"
               placeholder="Start typing your community…" data-i18n-ph="community_ph"
               class="mt-1 w-full rounded-lg border border-black/15 px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
             <datalist id="complex-list"></datalist>
@@ -138,22 +138,32 @@
             Text me my quote
           </button>
 
+          <p class="mt-2 text-xs text-center font-semibold text-sf-ink/70" data-i18n="reassure">
+            Free quote. No obligation. Takes about 60 seconds.
+          </p>
+
           <p class="text-xs text-sf-ink/55 text-center" data-i18n="consent">
             By submitting you agree Anthony Gallant State Farm may text and email you about your quote. Standard rates apply. No spam.
           </p>
+
+          <div class="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-sf-ink/65" data-i18n="trustbar">
+            Local Gastonia agent · A real person texts you back · No spam, ever
+          </div>
         </form>
 
         <!-- Success state -->
-        <div id="lead-success" class="hidden text-center py-4">
+        <div id="lead-success" class="hidden text-center py-4" aria-live="polite">
           <div class="mx-auto w-12 h-12 rounded-full bg-sf-red/10 flex items-center justify-center mb-3">
             <svg viewBox="0 0 24 24" class="w-6 h-6 text-sf-red" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </div>
           <h3 class="text-xl font-bold" data-i18n="success_h">Got it — check your phone.</h3>
           <p class="mt-2 text-sf-ink/75" data-i18n="success_p">Anthony will text you within 5 minutes during business hours.</p>
+          <a href="tel:+17048538001" class="mt-4 inline-flex items-center justify-center gap-2 w-full rounded-lg bg-sf-red hover:bg-sf-redDark text-white font-bold py-3 text-base transition" data-i18n="success_call">Or call Anthony now</a>
+          <a href="sms:+17048538001" class="mt-2 inline-block text-sm font-semibold text-sf-red hover:underline" data-i18n="success_text">Prefer to text? Message him directly</a>
         </div>
 
         <!-- Error state -->
-        <div id="lead-error" class="hidden mt-3 text-sm text-sf-red text-center"></div>
+        <div id="lead-error" role="alert" aria-live="assertive" class="hidden mt-3 rounded-lg bg-sf-red/10 text-sf-red text-sm text-center px-3 py-2"></div>
       </div>
     </section>
 
@@ -206,7 +216,7 @@
       <a href="/homeowners" class="font-semibold text-sf-red hover:underline" data-i18n="cross_link">Get a homeowners quote →</a>
     </section>
 
-    <footer class="pb-10 text-xs text-sf-ink/50 text-center">
+    <footer class="pb-24 sm:pb-10 text-xs text-sf-ink/50 text-center">
       &copy; <span id="year"></span> <span data-i18n="footer">Anthony Gallant, State Farm Agent. State Farm Mutual Automobile Insurance Company, Bloomington, IL. Coverage subject to terms, conditions, and availability.</span>
     </footer>
   </main>
@@ -222,6 +232,9 @@
         _sending: 'Sending…',
         _fillAll: 'Please fill out all fields.',
         _err: 'Something went wrong. Please call (704) 853-8001 instead.',
+        _err_html: 'Something went wrong. <a href="tel:+17048538001" class="underline font-semibold">Tap to call (704) 853-8001</a>.',
+        _badPhone: 'Enter a 10-digit mobile number.',
+        _badEmail: 'Enter a valid email address.',
         _verify: 'Please complete the verification below.',
       },
       es: {
@@ -230,6 +243,14 @@
         _fillAll: 'Por favor completa todos los campos.',
         _err: 'Algo salió mal. Por favor llama al (704) 853-8001.',
         _verify: 'Por favor completa la verificación.',
+        _err_html: 'Algo salió mal. <a href="tel:+17048538001" class="underline font-semibold">Toca para llamar al (704) 853-8001</a>.',
+        _badPhone: 'Ingresa un número de celular de 10 dígitos.',
+        _badEmail: 'Ingresa un correo electrónico válido.',
+        reassure: 'Cotización gratis. Sin compromiso. Toma unos 60 segundos.',
+        trustbar: 'Agente local en Gastonia · Te responde una persona real · Sin spam, nunca',
+        success_call: 'O llama a Anthony ahora',
+        success_text: '¿Prefieres texto? Envíale un mensaje',
+        sticky_cta: 'Obtener mi cotización',
         eyebrow: 'Seguro para inquilinos',
         hero: 'Asegurado en 5 minutos.<br/><span class="text-sf-red">Desde $5.50/mes.</span>',
         subhead: 'Tu contrato probablemente requiere seguro para inquilinos. Te enviaré una cotización rápido, sin llamadas perdidas ni presión.',
@@ -264,6 +285,14 @@
         _fillAll: 'Tanpri ranpli tout chan yo.',
         _err: 'Gen yon pwoblèm ki rive. Tanpri rele (704) 853-8001.',
         _verify: 'Tanpri konplete verifikasyon an.',
+        _err_html: 'Gen yon pwoblèm ki rive. <a href="tel:+17048538001" class="underline font-semibold">Peze pou rele (704) 853-8001</a>.',
+        _badPhone: 'Antre yon nimewo selilè 10 chif.',
+        _badEmail: 'Antre yon imèl ki valab.',
+        reassure: 'Pri gratis. San okenn obligasyon. Li pran anviwon 60 segond.',
+        trustbar: 'Ajan lokal nan Gastonia · Yon vrè moun reponn ou · Pa gen spam, jamè',
+        success_call: 'Oswa rele Anthony kounye a',
+        success_text: 'Pito tèks? Voye yon mesaj ba li',
+        sticky_cta: 'Jwenn pri mwen',
         eyebrow: 'Asirans pou Lokatè',
         hero: 'Asire nan 5 minit.<br/><span class="text-sf-red">Apati $5.50/mwa.</span>',
         subhead: 'Kontra lwaye w la pwobableman mande asirans pou lokatè. M ap voye yon pri ba ou byen vit, san pèdi tan, san presyon.',
@@ -330,7 +359,7 @@
       });
       if (dict._title) document.title = dict._title;
       // toggle styling
-      const setBtn = (id, on) => { const b = document.getElementById(id); if (b) b.className = 'hover:text-sf-red ' + (on ? 'text-sf-red' : 'text-sf-ink/45'); };
+      const setBtn = (id, on) => { const b = document.getElementById(id); if (b) b.className = 'hover:text-sf-red px-2 py-2 -my-1 inline-block ' + (on ? 'text-sf-red' : 'text-sf-ink/45'); };
       setBtn('lang-en', lang === 'en');
       setBtn('lang-es', lang === 'es');
       setBtn('lang-ht', lang === 'ht');
@@ -405,6 +434,24 @@
     const submitBtn = document.getElementById('submit-btn');
     const successBox = document.getElementById('lead-success');
     const errorBox = document.getElementById('lead-error');
+    const phoneInput = document.getElementById('phone');
+    const emailInput = document.getElementById('email');
+
+    function escAttr(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    // Show an error in the live-region chip and scroll it into view (on mobile it
+    // can sit below the fold). `html` lets a message carry a tap-to-call link.
+    function showError(html) {
+      errorBox.innerHTML = html;
+      errorBox.classList.remove('hidden');
+      errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    // Outline + focus an invalid field; clear the outline as soon as it's edited.
+    function flagField(el) {
+      if (!el) return;
+      el.classList.add('border-sf-red', 'ring-2', 'ring-sf-red/20');
+      el.focus();
+      el.addEventListener('input', () => el.classList.remove('border-sf-red', 'ring-2', 'ring-sf-red/20'), { once: true });
+    }
 
     form.addEventListener('submit', async function(e) {
       e.preventDefault();
@@ -415,27 +462,33 @@
       // Honeypot — if filled, silently succeed without posting
       if ((fd.get('website') || '').trim() !== '') {
         form.classList.add('hidden');
-        successBox.classList.remove('hidden');
+        showSuccess();
         return;
       }
 
       const payload = Object.fromEntries(fd.entries());
       if (!payload.firstName || !payload.phone || !payload.email) {
-        errorBox.textContent = L._fillAll;
-        errorBox.classList.remove('hidden');
+        showError(escAttr(L._fillAll));
         return;
+      }
+      // Validate the values of the already-required fields (the form is novalidate)
+      // so a clearly bad phone/email is caught here instead of shipping junk.
+      if (payload.phone.replace(/\D/g, '').length < 10) {
+        showError(escAttr(L._badPhone)); flagField(phoneInput); return;
+      }
+      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(payload.email)) {
+        showError(escAttr(L._badEmail)); flagField(emailInput); return;
       }
 
       // Require a Turnstile token when the widget is active.
       if (turnstileRequired && !turnstileToken) {
-        errorBox.textContent = L._verify;
-        errorBox.classList.remove('hidden');
+        showError(escAttr(L._verify));
         return;
       }
       if (turnstileToken) payload.cf_turnstile_token = turnstileToken;
 
       submitBtn.disabled = true;
-      submitBtn.textContent = L._sending;
+      submitBtn.innerHTML = '<span class="inline-flex items-center justify-center gap-2"><span class="inline-block w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" aria-hidden="true"></span>' + escAttr(L._sending) + '</span>';
 
       try {
         const res = await fetch('/api/lead', {
@@ -445,7 +498,7 @@
         });
         if (!res.ok) throw new Error('Bad response: ' + res.status);
         form.classList.add('hidden');
-        successBox.classList.remove('hidden');
+        showSuccess();
         // if (window.fbq) fbq('track', 'Lead');
       } catch (err) {
         console.error(err);
@@ -456,10 +509,67 @@
         }
         submitBtn.disabled = false;
         submitBtn.textContent = L.btn_submit;
-        errorBox.textContent = L._err;
-        errorBox.classList.remove('hidden');
+        showError(L._err_html || escAttr(L._err));
       }
     });
+
+    // Reveal the success state, hide the sticky CTA, and bring it into view so a
+    // visitor who scrolled while filling sees the confirmation + the call CTA.
+    function showSuccess() {
+      successBox.classList.remove('hidden');
+      const sticky = document.getElementById('sticky-cta');
+      if (sticky) { sticky.dataset.done = '1'; sticky.classList.add('hidden'); }
+      successBox.setAttribute('tabindex', '-1');
+      successBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      try { successBox.focus({ preventScroll: true }); } catch (e) {}
+    }
+
+    // Live phone formatting: progressive (XXX) XXX-XXXX, tolerant of a pasted +1
+    // or country code, and caret-preserving so mid-string edits and backspacing
+    // through the separators behave normally instead of jumping to the end.
+    if (phoneInput) {
+      const fmtPhone = (d) =>
+        d.length === 0 ? '' :
+        d.length < 4   ? d :
+        d.length < 7   ? `(${d.slice(0, 3)}) ${d.slice(3)}` :
+                         `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
+      phoneInput.addEventListener('input', () => {
+        const el = phoneInput;
+        const caret = el.selectionStart || 0;
+        const digitsLeft = el.value.slice(0, caret).replace(/\D/g, '').length;
+        let d = el.value.replace(/\D/g, '');
+        if (d.length > 10 && d[0] === '1') d = d.slice(1);   // drop a pasted country code
+        d = d.slice(0, 10);
+        const formatted = fmtPhone(d);
+        el.value = formatted;
+        // restore the caret to sit behind the same number of digits as before
+        let pos = 0, seen = 0;
+        while (pos < formatted.length && seen < digitsLeft) {
+          const c = formatted.charCodeAt(pos);
+          if (c >= 48 && c <= 57) seen++;
+          pos++;
+        }
+        try { el.setSelectionRange(pos, pos); } catch (e) {}
+      });
+    }
+
+    // Sticky mobile CTA: show it whenever the form section (#quote) is out of
+    // view, until the lead converts.
+    (function () {
+      const sticky = document.getElementById('sticky-cta');
+      const quote = document.getElementById('quote');
+      if (!sticky || !quote || !('IntersectionObserver' in window)) return;
+      const io = new IntersectionObserver((entries) => {
+        if (sticky.dataset.done === '1') return;   // converted — stay hidden
+        sticky.classList.toggle('hidden', entries[0].isIntersecting);
+      }, { rootMargin: '0px 0px -10% 0px' });
+      io.observe(quote);
+    })();
   </script>
+
+  <!-- Sticky mobile CTA — appears once the form scrolls out of view -->
+  <div id="sticky-cta" class="sm:hidden fixed bottom-0 inset-x-0 z-40 hidden bg-white/95 backdrop-blur border-t border-black/10 px-4 py-3" style="padding-bottom:calc(0.75rem + env(safe-area-inset-bottom))">
+    <a href="#quote" class="block w-full text-center rounded-lg bg-sf-red text-white font-bold py-3" data-i18n="sticky_cta">Get my quote</a>
+  </div>
 </body>
 </html>
