@@ -160,8 +160,13 @@
 
         <!-- Ranking: top complexes by business -->
         <section>
-          <h2 class="text-lg font-extrabold tracking-tight">Top complexes by business</h2>
-          <p class="text-xs text-sf-ink/50 mb-3">Where your leads are coming from (self-reported on the form). Ranked by total leads, then policies bound.</p>
+          <div class="flex flex-wrap items-start justify-between gap-2">
+            <div>
+              <h2 class="text-lg font-extrabold tracking-tight">Top complexes by business</h2>
+              <p class="text-xs text-sf-ink/50 mb-3">Where your leads are coming from (self-reported on the form). Ranked by total leads, then policies bound.</p>
+            </div>
+            <button id="recap-btn" type="button" title="Email each partner community a no-PII “N residents covered this month” recap" class="rounded-lg border border-emerald-300 bg-emerald-50 text-emerald-800 font-bold px-3 py-2 text-xs hover:bg-emerald-100 transition flex-shrink-0">Email partner recaps</button>
+          </div>
           <div id="ranking" class="rounded-xl bg-white border border-black/10 overflow-hidden">
             <div class="text-sf-ink/55 p-6 text-center text-sm">Loading…</div>
           </div>
@@ -619,6 +624,19 @@
       <div class="mt-2.5">
         <textarea rows="2" class="notes-input w-full rounded-lg border border-black/15 px-2.5 py-2 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" placeholder="Add a note…"></textarea>
       </div>
+      <div class="proof-wrap hidden mt-2.5 rounded-lg bg-emerald-50 border border-emerald-200 px-2.5 py-2">
+        <div class="text-[11px] font-semibold text-emerald-800">Resident asked to share proof with their community</div>
+        <div class="mt-1.5 flex items-center gap-2 flex-wrap">
+          <button type="button" class="proof-btn text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg px-3 py-2" style="touch-action:manipulation">Send proof to office</button>
+          <span class="proof-confirm hidden items-center gap-2 text-[11px]">
+            <span class="text-emerald-900">Send now?</span>
+            <button type="button" class="proof-yes font-bold text-emerald-700 hover:underline">Yes</button>
+            <button type="button" class="proof-no font-semibold text-sf-ink/55 hover:underline">Cancel</button>
+          </span>
+          <span class="proof-sent hidden text-[11px] font-semibold text-emerald-800"></span>
+          <span class="proof-hint hidden text-[11px] text-sf-ink/55"></span>
+        </div>
+      </div>
       <div class="mt-1.5 flex justify-end">
         <button type="button" class="delete-btn text-[11px] font-semibold text-sf-ink/40 hover:text-sf-red transition py-2 px-1">Delete</button>
         <span class="confirm-wrap hidden items-center gap-2 text-[11px]">
@@ -663,6 +681,10 @@
       <div class="mt-2.5 flex gap-2.5">
         <input class="cx-by w-24 flex-shrink-0 rounded-lg border border-black/15 px-2.5 py-2.5 text-base focus:outline-none focus:border-sf-red" placeholder="By" />
         <textarea rows="1" class="cx-notes flex-1 rounded-lg border border-black/15 px-2.5 py-2.5 text-base focus:outline-none focus:border-sf-red" placeholder="Notes…"></textarea>
+      </div>
+      <div class="mt-2.5 flex gap-2.5">
+        <input class="cx-partner-email flex-1 rounded-lg border border-black/15 px-2.5 py-2.5 text-base focus:outline-none focus:border-sf-red" type="email" inputmode="email" autocapitalize="off" placeholder="Leasing-office email (for proof + recaps)" />
+        <input class="cx-partner-contact w-28 flex-shrink-0 rounded-lg border border-black/15 px-2.5 py-2.5 text-base focus:outline-none focus:border-sf-red" placeholder="Contact" />
       </div>
     </article>
   </template>
@@ -846,6 +868,7 @@
     document.getElementById('complex-search').addEventListener('input', (e) => { cxSearch = e.target.value.toLowerCase(); renderComplexes(); });
     document.getElementById('complex-sort').addEventListener('change', (e) => { cxSort = e.target.value; renderComplexes(); });
     document.getElementById('complex-filter').addEventListener('change', (e) => { cxFilter = e.target.value; renderComplexes(); });
+    document.getElementById('recap-btn')?.addEventListener('click', sendPartnerRecaps);
     document.getElementById('dealer-search').addEventListener('input', (e) => { dxSearch = e.target.value.toLowerCase(); renderDealerships(); });
     document.getElementById('dealer-sort').addEventListener('change', (e) => { dxSort = e.target.value; renderDealerships(); });
     document.getElementById('dealer-filter').addEventListener('change', (e) => { dxFilter = e.target.value; renderDealerships(); });
@@ -1279,6 +1302,38 @@
         delBtn.classList.remove('hidden');
       });
       card.querySelector('.confirm-yes').addEventListener('click', () => deleteLead(card, lead));
+
+      // Partner proof-of-coverage hand-back — only when the resident opted in.
+      const proofWrap = card.querySelector('.proof-wrap');
+      if (proofWrap && lead.share_with_property === true) {
+        proofWrap.classList.remove('hidden');
+        const proofBtn = card.querySelector('.proof-btn');
+        const proofConfirm = card.querySelector('.proof-confirm');
+        const proofSent = card.querySelector('.proof-sent');
+        const proofHint = card.querySelector('.proof-hint');
+        const cx = lead.complex_id ? complexes.find(c => c.id === lead.complex_id) : null;
+        const partnerEmail = cx && String(cx.partner_email || '').trim();
+        const show = (el) => el && el.classList.remove('hidden');
+        const hide = (el) => el && el.classList.add('hidden');
+        if (lead.proof_sent_at) {
+          hide(proofBtn);
+          proofSent.textContent = `Proof sent ✓ ${relTime(lead.proof_sent_at)}`;
+          show(proofSent);
+        } else if (lead.status !== 'bound') {
+          hide(proofBtn);
+          proofHint.textContent = 'Mark Bound to send proof.';
+          show(proofHint);
+        } else if (!cx || !partnerEmail) {
+          hide(proofBtn);
+          proofHint.textContent = cx ? `Add ${cx.name}'s leasing-office email in Complexes.` : 'No community on file.';
+          show(proofHint);
+        } else {
+          proofBtn.textContent = `Send proof to ${cx.name}`;
+          proofBtn.addEventListener('click', () => { hide(proofBtn); show(proofConfirm); proofConfirm.classList.add('inline-flex'); });
+          card.querySelector('.proof-no').addEventListener('click', () => { hide(proofConfirm); proofConfirm.classList.remove('inline-flex'); show(proofBtn); });
+          card.querySelector('.proof-yes').addEventListener('click', () => sendProof(card, lead));
+        }
+      }
     }
 
     async function deleteLead(card, lead) {
@@ -1322,6 +1377,34 @@
         card.classList.remove('row-saving');
         card.classList.add('row-saved');
         setTimeout(() => card.classList.remove('row-saved'), 1200);
+      }
+    }
+
+    // Hand the resident's proof of coverage to their apartment community (only
+    // reachable when they opted in, the policy is bound, and the complex has a
+    // leasing-office email). Updates the card in place on success.
+    async function sendProof(card, lead) {
+      const yes = card.querySelector('.proof-yes');
+      if (yes) yes.disabled = true;
+      card.classList.add('row-saving');
+      try {
+        const r = await fetch('/api/partner-proof', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ leadId: lead.id }),
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
+        lead.proof_sent_at = d.proof_sent_at || new Date().toISOString();
+        const i = leads.findIndex(x => x.id === lead.id);
+        if (i >= 0) leads[i] = lead;
+        renderAll();
+      } catch (e) {
+        console.error(e);
+        alert('Could not send proof: ' + e.message);
+        card.classList.remove('row-saving');
+        if (yes) yes.disabled = false;
       }
     }
 
@@ -1440,6 +1523,22 @@
       let bDirty = false;
       by.addEventListener('input', () => { bDirty = true; });
       by.addEventListener('blur', () => { if (bDirty) { bDirty = false; saveComplex(c, { last_contacted_by: by.value }); } });
+
+      // Partner channel: leasing-office email + contact name, saved on blur.
+      const pEmail = row.querySelector('.cx-partner-email');
+      if (pEmail) {
+        pEmail.value = c.partner_email || '';
+        let peDirty = false;
+        pEmail.addEventListener('input', () => { peDirty = true; });
+        pEmail.addEventListener('blur', () => { if (peDirty) { peDirty = false; saveComplex(c, { partner_email: pEmail.value.trim() }); } });
+      }
+      const pContact = row.querySelector('.cx-partner-contact');
+      if (pContact) {
+        pContact.value = c.partner_contact || '';
+        let pcDirty = false;
+        pContact.addEventListener('input', () => { pcDirty = true; });
+        pContact.addEventListener('blur', () => { if (pcDirty) { pcDirty = false; saveComplex(c, { partner_contact: pContact.value.trim() }); } });
+      }
     }
 
     async function saveComplex(complex, patch) {
@@ -1464,6 +1563,35 @@
 
     function markContacted(complex, by) {
       return saveComplex(complex, { mark_contacted: true, last_contacted_by: by || complex.last_contacted_by || '' });
+    }
+
+    // Email every partner community (one with a leasing-office email + a policy
+    // bound this month) a no-PII "N residents covered" recap. Confirmed first —
+    // it sends real email to third parties.
+    async function sendPartnerRecaps() {
+      const btn = document.getElementById('recap-btn');
+      if (!confirm('Email a "your residents got covered this month" recap to every partner community that has a leasing-office email on file and at least one policy bound this month?')) return;
+      const label = btn ? btn.textContent : '';
+      if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+      try {
+        const r = await fetch('/api/partner-recap', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: '{}',
+        });
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
+        const sent = d.sent || [];
+        alert(sent.length
+          ? `Sent ${sent.length} recap${sent.length === 1 ? '' : 's'} for ${d.month}:\n` + sent.map(s => `• ${s.name}: ${s.count}`).join('\n')
+          : `No partner community had a leasing-office email + a policy bound in ${d.month || 'this month'} yet.`);
+      } catch (e) {
+        console.error(e);
+        alert('Recap failed: ' + e.message);
+      } finally {
+        if (btn) { btn.disabled = false; btn.textContent = label; }
+      }
     }
 
     // ---------- dealerships (ranking + outreach + navigator) ----------

@@ -76,6 +76,10 @@ export default async function handler(req, res) {
       }
       if (typeof body.notes === 'string') patch.notes = body.notes.slice(0, 2000);
       if (typeof body.last_contacted_by === 'string') patch.last_contacted_by = body.last_contacted_by.slice(0, 120);
+      // Partner channel: the leasing-office email (used for proof-of-coverage +
+      // monthly recaps) and an optional contact name. Empty string clears it.
+      if (typeof body.partner_email === 'string') patch.partner_email = body.partner_email.trim().slice(0, 200);
+      if (typeof body.partner_contact === 'string') patch.partner_contact = body.partner_contact.trim().slice(0, 120);
       if (body.mark_contacted) {
         patch.last_contacted_at = new Date().toISOString();
         if (typeof body.last_contacted_by === 'string') patch.last_contacted_by = body.last_contacted_by.slice(0, 120);

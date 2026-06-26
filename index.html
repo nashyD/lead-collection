@@ -145,6 +145,18 @@
             <datalist id="complex-list"></datalist>
           </div>
 
+          <!-- Partner opt-in: send proof of coverage to the resident's apartment
+               community to satisfy the lease. Revealed by JS only when this looks
+               like a partner-channel visit (came via a partner QR, utm_source=apt,
+               or a community is chosen). -->
+          <div id="share-proof-wrap" class="hidden">
+            <label class="flex items-start gap-2.5 cursor-pointer select-none">
+              <input id="share_with_property" name="share_with_property" type="checkbox"
+                class="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-black/25 text-sf-red focus:ring-2 focus:ring-sf-red/30" />
+              <span class="text-xs text-sf-ink/70 leading-snug" data-i18n="share_proof">Send my proof of renters insurance to my apartment community to satisfy my lease (optional).</span>
+            </label>
+          </div>
+
           <!-- Hidden source tracking -->
           <input type="hidden" id="utm_source" name="utm_source" />
           <input type="hidden" id="utm_medium" name="utm_medium" />
@@ -287,6 +299,7 @@
         lbl_language: 'Idioma que hablas',
         lbl_community: 'Comunidad de apartamentos (opcional)',
         community_ph: 'Empieza a escribir tu comunidad…',
+        share_proof: 'Envía mi comprobante de seguro de inquilino a mi comunidad de apartamentos para cumplir con mi contrato (opcional).',
         btn_submit: 'Envíame mi cotización',
         consent: 'Al enviar, aceptas que Anthony Gallant State Farm puede comunicarse contigo por texto y correo electrónico sobre tu cotización. Pueden aplicarse tarifas estándar. Sin spam.',
         success_h: '¡Listo! Revisa tu teléfono.',
@@ -330,6 +343,7 @@
         lbl_language: 'Lang ou pale',
         lbl_community: 'Kominote apatman (opsyonèl)',
         community_ph: 'Kòmanse tape non kominote w…',
+        share_proof: 'Voye prèv asirans lokatè mwen bay kominote apatman mwen pou satisfè kontra mwen (opsyonèl).',
         btn_submit: 'Voye pri m ban mwen',
         consent: 'Lè w voye sa, ou dakò pou Anthony Gallant State Farm kapab kontakte w pa tèks ak imèl konsènan pri w la. Tarif estanda kapab aplike. Pa gen spam.',
         success_h: 'Nou resevwa l — tcheke telefòn ou.',
@@ -408,6 +422,17 @@
         if (el) el.value = params.get(k) || '';
       });
       document.getElementById('year').textContent = new Date().getFullYear();
+      // Reveal the "send proof to my community" opt-in for partner-channel visits.
+      const shareWrap = document.getElementById('share-proof-wrap');
+      const communityEl = document.getElementById('community');
+      const isPartnerVisit = (params.get('utm_source') || '').toLowerCase() === 'apt';
+      const updateShare = () => {
+        if (!shareWrap) return;
+        const show = isPartnerVisit || !!(communityEl && communityEl.value.trim());
+        shareWrap.classList.toggle('hidden', !show);
+      };
+      if (communityEl) communityEl.addEventListener('input', updateShare);
+      updateShare();
       applyLang(detectLang());
     })();
 
@@ -523,6 +548,10 @@
       // Capture the exact consent language the visitor agreed to (TCPA proof).
       const consentEl = document.querySelector('[data-i18n="consent"]');
       if (consentEl) payload.consent_text = consentEl.textContent.trim();
+      // Partner opt-in — only sent true when the opt-in is actually shown + checked.
+      const shareEl = document.getElementById('share_with_property');
+      const shareWrapEl = document.getElementById('share-proof-wrap');
+      payload.share_with_property = !!(shareEl && shareEl.checked && shareWrapEl && !shareWrapEl.classList.contains('hidden'));
       // Shared event id so the browser pixel and the server Conversions API dedup
       // to ONE Lead conversion instead of double-counting.
       const EVENT_ID = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(16).slice(2));
