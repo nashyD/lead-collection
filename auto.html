@@ -118,6 +118,13 @@
               class="mt-1 w-full rounded-lg border border-black/15 px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
             <p class="mt-1 text-xs text-sf-ink/50" data-i18n="vehicle_hint">Got more than one? List the main one — we'll sort out the rest by text.</p>
           </div>
+          <div>
+            <label for="dealership" class="block text-sm font-semibold text-sf-ink" data-i18n="lbl_dealership">Where you bought your car (optional)</label>
+            <input id="dealership" name="dealership" type="text" list="dealership-list" autocomplete="off"
+              placeholder="Start typing the dealership…" data-i18n-ph="dealership_ph"
+              class="mt-1 w-full rounded-lg border border-black/15 px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
+            <datalist id="dealership-list"></datalist>
+          </div>
 
           <!-- Product line — tells the server this is an auto lead -->
           <input type="hidden" name="product" value="auto" />
@@ -243,6 +250,8 @@
         lbl_vehicle: 'Vehículo — año, marca y modelo (opcional)',
         vehicle_ph: '2022 Honda Accord',
         vehicle_hint: '¿Tienes más de uno? Pon el principal — el resto lo arreglamos por texto.',
+        lbl_dealership: 'Dónde compraste tu carro (opcional)',
+        dealership_ph: 'Empieza a escribir el concesionario…',
         btn_submit: 'Envíame mi cotización',
         consent: 'Al enviar, aceptas que Anthony Gallant State Farm puede comunicarse contigo por texto y correo electrónico sobre tu cotización. Pueden aplicarse tarifas estándar. Sin spam.',
         success_h: '¡Listo! Revisa tu teléfono.',
@@ -279,6 +288,8 @@
         lbl_vehicle: 'Machin — ane, mak ak modèl (opsyonèl)',
         vehicle_ph: '2022 Honda Accord',
         vehicle_hint: 'Ou gen plis pase youn? Mete sa prensipal la — n ap regle rès la pa tèks.',
+        lbl_dealership: 'Kote w te achte machin ou (opsyonèl)',
+        dealership_ph: 'Kòmanse tape non konsesyonè a…',
         btn_submit: 'Voye pri m ban mwen',
         consent: 'Lè w voye sa, ou dakò pou Anthony Gallant State Farm kapab kontakte w pa tèks ak imèl konsènan pri w la. Tarif estanda kapab aplike. Pa gen spam.',
         success_h: 'Nou resevwa l — tcheke telefòn ou.',
@@ -367,6 +378,18 @@
     // Once the visitor picks a spoken language, stop auto-syncing it to the toggle.
     const langSelEl = document.getElementById('language');
     if (langSelEl) langSelEl.addEventListener('change', () => { langSelEl.dataset.touched = '1'; });
+
+    // Populate the dealership picker from the public dealership list.
+    fetch('/api/dealerships-public')
+      .then(r => (r.ok ? r.json() : { dealerships: [] }))
+      .then(d => {
+        const dl = document.getElementById('dealership-list');
+        if (!dl || !Array.isArray(d.dealerships)) return;
+        dl.innerHTML = d.dealerships
+          .map(c => `<option value="${String(c.name || '').replace(/"/g, '&quot;')}"></option>`)
+          .join('');
+      })
+      .catch(() => {});
 
     // ---------- bot protection (Cloudflare Turnstile) ----------
     // Site key comes from /api/config; the widget renders only when one is set,

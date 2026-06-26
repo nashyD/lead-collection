@@ -74,6 +74,10 @@ export default async function handler(req, res) {
   // save time; falls back to free-text if it isn't a known complex.
   const community = String(body.community || '').trim().slice(0, 200);
 
+  // Self-reported car dealership (auto form only, optional). Resolved to a
+  // dealership_id at save time; falls back to free-text if it isn't known.
+  const dealership = String(body.dealership || '').trim().slice(0, 200);
+
   // Self-reported preferred language so the office can route to a rep who speaks it.
   const langRaw = String(body.language || '').trim().toLowerCase();
   const language = ['en', 'es', 'ht'].includes(langRaw) ? langRaw : 'en';
@@ -97,6 +101,7 @@ export default async function handler(req, res) {
     medium,
     campaign,
     community,
+    dealership,
     language,
     product,
     address,
@@ -109,7 +114,7 @@ export default async function handler(req, res) {
   // Non-PII breadcrumb on every submission. Full lead detail is only logged on
   // the all-sinks-failed path below, as a last-resort recovery trail — we don't
   // want customer name/phone/email/IP sitting in function logs on every request.
-  console.log('lead_received', JSON.stringify({ source, campaign, language, product, hasCommunity: !!community }));
+  console.log('lead_received', JSON.stringify({ source, campaign, language, product, hasCommunity: !!community, hasDealership: !!dealership }));
 
   // Capture the lead in at least one durable place. Each sink is fail-soft, but
   // if NONE succeeds we must not tell the visitor "we got it" (a paid lead is
@@ -180,7 +185,8 @@ async function saveLeadToSupabase(lead) {
     try {
       const q = new URL(`${base}/rest/v1/complexes`);
       q.searchParams.set('select', 'id');
-      q.searchParams.set('name', `ilike.${lead.community}`);
+      q.searchParams.set('name', ilikeExactFilter(lead.community));
+      q.searchParams.set('order', 'name.asc');
       q.searchParams.set('limit', '1');
       const cr = await fetch(q, {
         headers: {
@@ -194,6 +200,30 @@ async function saveLeadToSupabase(lead) {
     } catch (e) {
       console.error('complex_resolve_failed', e);
       row.complex_other = lead.community;
+    }
+  }
+
+  // Same resolution for the self-reported dealership (auto leads). Match by name
+  // (case-insensitive exact) against known dealerships; otherwise keep free text.
+  if (lead.dealership) {
+    try {
+      const q = new URL(`${base}/rest/v1/dealerships`);
+      q.searchParams.set('select', 'id');
+      q.searchParams.set('name', ilikeExactFilter(lead.dealership));
+      q.searchParams.set('order', 'name.asc');
+      q.searchParams.set('limit', '1');
+      const dr = await fetch(q, {
+        headers: {
+          apikey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+          Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+      });
+      const match = dr.ok ? (await dr.json())[0] : null;
+      if (match) row.dealership_id = match.id;
+      else row.dealership_other = lead.dealership;
+    } catch (e) {
+      console.error('dealership_resolve_failed', e);
+      row.dealership_other = lead.dealership;
     }
   }
   const insert = (payload) => fetch(url, {
@@ -210,7 +240,7 @@ async function saveLeadToSupabase(lead) {
   // Columns added by later migrations that may not exist yet in a given DB.
   // Everything NOT in this list (first_name/phone/email/source/medium/campaign/
   // user_agent/ip) is part of the original schema and always present.
-  const OPTIONAL_COLS = ['language', 'product', 'address', 'vehicle', 'complex_id', 'complex_other'];
+  const OPTIONAL_COLS = ['language', 'product', 'address', 'vehicle', 'complex_id', 'complex_other', 'dealership_id', 'dealership_other'];
 
   // Insert with a self-healing retry so a paid lead is never lost to a schema
   // that's mid-migration:
@@ -286,6 +316,7 @@ async function emailOffice(lead, recipients) {
         <tr><td style="padding:6px 0;color:#666;">Speaks</td><td style="padding:6px 0;font-weight:700;color:#E22925;">${escapeHtml(LANGUAGE_LABELS[lead.language] || lead.language)}</td></tr>
         ${lead.address ? `<tr><td style="padding:6px 0;color:#666;">Address</td><td style="padding:6px 0;">${escapeHtml(lead.address)}</td></tr>` : ''}
         ${lead.vehicle ? `<tr><td style="padding:6px 0;color:#666;">Vehicle</td><td style="padding:6px 0;">${escapeHtml(lead.vehicle)}</td></tr>` : ''}
+        ${lead.dealership ? `<tr><td style="padding:6px 0;color:#666;">Dealership</td><td style="padding:6px 0;">${escapeHtml(lead.dealership)}</td></tr>` : ''}
         <tr><td style="padding:6px 0;color:#666;">Phone</td><td style="padding:6px 0;font-weight:600;"><a href="sms:${lead.phone}">${lead.phone}</a> · <a href="tel:${lead.phone}">call</a></td></tr>
         <tr><td style="padding:6px 0;color:#666;">Email</td><td style="padding:6px 0;"><a href="mailto:${lead.email}">${escapeHtml(lead.email)}</a></td></tr>
         <tr><td style="padding:6px 0;color:#666;">Source</td><td style="padding:6px 0;">${escapeHtml(lead.source)}${lead.campaign ? ' / ' + escapeHtml(lead.campaign) : ''}</td></tr>
@@ -333,6 +364,19 @@ function escapeHtml(s) {
   return String(s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Build a PostgREST `name=ilike."…"` filter that matches the value EXACTLY but
+// case-insensitively. Two layers of escaping:
+//   1. SQL LIKE wildcards (% _ \) are backslash-escaped so a user-typed "%" can't
+//      match every row (which would mis-attribute the lead to a random complex).
+//   2. The result is wrapped in double quotes so PostgREST reserved characters
+//      (commas, parentheses, spaces) are treated literally — e.g. a Google Places
+//      name like `Toyota of Gastonia, Inc.` would otherwise break the filter.
+function ilikeExactFilter(value) {
+  const likeEscaped = String(value).replace(/[\\%_]/g, c => '\\' + c); // SQL LIKE: \ % _
+  const quoted = likeEscaped.replace(/[\\"]/g, c => '\\' + c);         // PostgREST quoting: \ "
+  return `ilike."${quoted}"`;
 }
 
 // --- Turnstile -------------------------------------------------------------

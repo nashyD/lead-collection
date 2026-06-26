@@ -101,6 +101,7 @@
           <nav class="flex items-center gap-1">
             <button id="tab-leads" type="button" class="dtab px-3.5 py-2 rounded-lg text-sm font-semibold" data-pane="leads">Leads</button>
             <button id="tab-complexes" type="button" class="dtab px-3.5 py-2 rounded-lg text-sm font-semibold" data-pane="complexes">Complexes</button>
+            <button id="tab-dealerships" type="button" class="dtab px-3.5 py-2 rounded-lg text-sm font-semibold" data-pane="dealerships">Dealers</button>
             <button id="tab-mileage" type="button" class="dtab px-3.5 py-2 rounded-lg text-sm font-semibold" data-pane="mileage">Mileage</button>
           </nav>
         </div>
@@ -198,6 +199,51 @@
         </section>
       </div>
 
+      <!-- ===== DEALERSHIPS PANE ===== -->
+      <div id="dealerships-pane" class="hidden space-y-8">
+
+        <!-- Ranking: top dealerships by business -->
+        <section>
+          <h2 class="text-lg font-extrabold tracking-tight">Top dealerships by business</h2>
+          <p class="text-xs text-sf-ink/50 mb-3">Where your auto leads are coming from (self-reported on the form). Ranked by total leads, then policies bound.</p>
+          <div id="ranking-d" class="rounded-xl bg-white border border-black/10 overflow-hidden">
+            <div class="text-sf-ink/55 p-6 text-center text-sm">Loading…</div>
+          </div>
+        </section>
+
+        <!-- Outreach checklist -->
+        <section>
+          <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <div>
+              <h2 class="text-lg font-extrabold tracking-tight">Dealership outreach</h2>
+              <p class="text-xs text-sf-ink/50">Every Gaston County dealership — track visits, partnership pitches, and last contact.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              <button id="nextd-btn" class="rounded-lg bg-sf-red hover:bg-sf-redDark text-white font-bold px-3.5 py-2.5 text-sm transition flex-shrink-0">Next dealership</button>
+              <button id="addd-btn" class="rounded-lg border border-black/15 text-sf-ink/75 hover:border-sf-red hover:text-sf-red font-bold px-3.5 py-2.5 text-sm transition flex-shrink-0">+ Add</button>
+              <input id="dealer-search" type="search" placeholder="Search dealerships…"
+                class="flex-1 min-w-[140px] rounded-lg border border-black/15 px-3 py-2.5 text-base sm:text-sm focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
+              <select id="dealer-filter" aria-label="Filter by status" class="rounded-lg border border-black/15 bg-white px-2.5 py-2.5 text-base sm:text-sm focus:outline-none focus:border-sf-red">
+                <option value="all">All statuses</option>
+                <option value="not_started">Not started</option>
+                <option value="contacted">Contacted</option>
+                <option value="partner">Partner</option>
+                <option value="declined">Declined</option>
+              </select>
+              <select id="dealer-sort" aria-label="Sort by" class="rounded-lg border border-black/15 bg-white px-2.5 py-2.5 text-base sm:text-sm focus:outline-none focus:border-sf-red">
+                <option value="stale">Sort: Stalest</option>
+                <option value="name">Sort: A–Z</option>
+                <option value="leads">Sort: Most leads</option>
+              </select>
+            </div>
+          </div>
+          <div id="dealer-count" class="text-xs font-semibold text-sf-ink/55 mb-2"></div>
+          <div id="dealer-list-pane" class="space-y-2.5">
+            <div class="rounded-xl bg-white border border-black/10 p-6 text-center text-sf-ink/55 text-sm">Loading…</div>
+          </div>
+        </section>
+      </div>
+
       <!-- ===== MILEAGE PANE ===== -->
       <div id="mileage-pane" class="hidden space-y-6 max-w-2xl">
 
@@ -235,7 +281,7 @@
               <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
               End trip
             </button>
-            <p class="mt-3 text-[11px] text-sf-ink/45">Tap &ldquo;Add stop&rdquo; when you arrive. Setting a status on the Complexes &rsaquo; Next tool logs a stop too.</p>
+            <p class="mt-3 text-[11px] text-sf-ink/45">Tap &ldquo;Add stop&rdquo; when you arrive. Saving on the Next complex or Next dealership tool logs a stop too.</p>
           </div>
         </section>
 
@@ -352,7 +398,124 @@
             <button id="next-save" type="button" style="touch-action:manipulation" class="rounded-xl bg-sf-red hover:bg-sf-redDark text-white font-bold text-sm min-h-[50px] active:bg-sf-redDark disabled:opacity-60">Save &amp; next</button>
             <button id="next-skip" type="button" style="touch-action:manipulation" class="rounded-xl border border-black/15 text-sf-ink/70 font-bold text-sm min-h-[50px] active:bg-black/5">Skip &rarr;</button>
           </div>
+          <!-- Delete a bad entry (e.g. a non-apartment Google Places result) on the spot, then advance. -->
+          <div class="mt-3 flex justify-center min-h-[28px] items-center">
+            <button id="next-delete" type="button" style="touch-action:manipulation" class="text-xs font-semibold text-sf-ink/40 hover:text-sf-red transition py-2 px-2">Delete this complex</button>
+            <span id="next-delete-confirm" class="hidden items-center gap-2 text-xs">
+              <span class="text-sf-ink/70">Delete it permanently?</span>
+              <button id="next-delete-yes" type="button" style="touch-action:manipulation" class="font-bold text-sf-red hover:underline py-1">Yes, delete</button>
+              <button id="next-delete-no" type="button" style="touch-action:manipulation" class="font-semibold text-sf-ink/55 hover:underline py-1">Cancel</button>
+            </span>
+          </div>
           <p id="next-count" class="mt-3 text-center text-xs text-sf-ink/45"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Next dealership sheet -->
+    <div id="nextd-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      <div id="nextd-backdrop" class="absolute inset-0 bg-black/50"></div>
+      <div class="relative w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl border border-black/10 shadow-xl max-h-[90vh] overflow-y-auto">
+        <div class="flex items-start justify-between gap-4 p-5 pb-2">
+          <div>
+            <h2 class="text-xl font-extrabold leading-tight">Next dealership near you</h2>
+            <p class="text-sm text-sf-ink/60 mt-0.5">The closest one you haven&rsquo;t hit recently.</p>
+          </div>
+          <button id="nextd-close" type="button" class="-m-2 p-2 text-sf-ink/40 hover:text-sf-red text-3xl leading-none">&times;</button>
+        </div>
+        <div class="px-5 flex items-center flex-wrap gap-x-2 gap-y-1 text-sm">
+          <span class="text-sf-ink/60">Skip places hit in the last</span>
+          <input id="nextd-days" type="number" inputmode="numeric" min="0" max="3650" value="30"
+            class="w-16 rounded-lg border border-black/15 px-2 py-1.5 text-base text-center focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
+          <span class="text-sf-ink/60">days</span>
+          <button id="nextd-refind" type="button" class="ml-auto font-semibold text-sf-red px-1 py-1.5">Refresh</button>
+        </div>
+        <div id="nextd-status" class="px-5 py-10 text-center text-sm text-sf-ink/55"></div>
+        <div id="nextd-result" class="hidden px-5 pb-6 pt-3">
+          <div class="rounded-2xl border border-black/10 bg-sf-cream p-4">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <h3 id="nextd-name" class="text-lg font-extrabold leading-tight break-words"></h3>
+                <div id="nextd-addr" class="text-sm text-sf-ink/60 mt-0.5"></div>
+              </div>
+              <div class="flex-shrink-0 text-right">
+                <div id="nextd-dist" class="text-sf-red font-extrabold text-base leading-none"></div>
+                <div class="text-[10px] uppercase tracking-wide text-sf-ink/45 mt-0.5">away</div>
+              </div>
+            </div>
+            <div id="nextd-meta" class="mt-2.5 text-xs text-sf-ink/60"></div>
+          </div>
+          <a id="nextd-nav" href="#" target="_blank" rel="noopener" style="touch-action:manipulation"
+            class="mt-4 flex items-center justify-center gap-2 w-full rounded-xl bg-sf-red hover:bg-sf-redDark active:bg-sf-redDark text-white font-bold text-base min-h-[54px]">
+            <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor"><path d="M21.71 11.29 12.71 2.29a1 1 0 0 0-1.42 0l-9 9a1 1 0 0 0 0 1.42l9 9a1 1 0 0 0 1.42 0l9-9a1 1 0 0 0 0-1.42ZM14 14.5V12h-4v3H8v-4a1 1 0 0 1 1-1h5V7.5l3.5 3.5Z"/></svg>
+            Navigate
+          </a>
+          <div class="mt-4 text-left">
+            <label for="nextd-status-sel" class="block text-[10px] font-semibold text-sf-ink/45 uppercase tracking-wide mb-1">Status</label>
+            <select id="nextd-status-sel" class="w-full rounded-lg border border-black/15 bg-white px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20">
+              <option value="contacted">Contacted</option>
+              <option value="partner">Partner (accepted)</option>
+              <option value="declined">Declined</option>
+              <option value="not_started">Not started</option>
+            </select>
+          </div>
+          <div class="mt-2.5 text-left">
+            <label for="nextd-notes" class="block text-[10px] font-semibold text-sf-ink/45 uppercase tracking-wide mb-1">Notes</label>
+            <textarea id="nextd-notes" rows="2" placeholder="What happened at this dealership&hellip;"
+              class="w-full rounded-lg border border-black/15 px-3 py-2.5 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20"></textarea>
+          </div>
+          <p id="nextd-trip-hint" class="hidden mt-2 text-[11px] font-semibold text-emerald-700"></p>
+          <div class="mt-3 grid grid-cols-2 gap-2.5">
+            <button id="nextd-save" type="button" style="touch-action:manipulation" class="rounded-xl bg-sf-red hover:bg-sf-redDark text-white font-bold text-sm min-h-[50px] active:bg-sf-redDark disabled:opacity-60">Save &amp; next</button>
+            <button id="nextd-skip" type="button" style="touch-action:manipulation" class="rounded-xl border border-black/15 text-sf-ink/70 font-bold text-sm min-h-[50px] active:bg-black/5">Skip &rarr;</button>
+          </div>
+          <!-- Delete a bad entry (e.g. a non-dealership Google Places result) on the spot, then advance. -->
+          <div class="mt-3 flex justify-center min-h-[28px] items-center">
+            <button id="nextd-delete" type="button" style="touch-action:manipulation" class="text-xs font-semibold text-sf-ink/40 hover:text-sf-red transition py-2 px-2">Delete this dealership</button>
+            <span id="nextd-delete-confirm" class="hidden items-center gap-2 text-xs">
+              <span class="text-sf-ink/70">Delete it permanently?</span>
+              <button id="nextd-delete-yes" type="button" style="touch-action:manipulation" class="font-bold text-sf-red hover:underline py-1">Yes, delete</button>
+              <button id="nextd-delete-no" type="button" style="touch-action:manipulation" class="font-semibold text-sf-ink/55 hover:underline py-1">Cancel</button>
+            </span>
+          </div>
+          <p id="nextd-count" class="mt-3 text-center text-xs text-sf-ink/45"></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add dealership sheet -->
+    <div id="addd-modal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+      <div id="addd-backdrop" class="absolute inset-0 bg-black/50"></div>
+      <div class="relative w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl border border-black/10 shadow-xl p-5 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-extrabold leading-tight">Add a dealership</h2>
+            <p class="text-sm text-sf-ink/60 mt-0.5">Adds it to the outreach list right away.</p>
+          </div>
+          <button id="addd-close" type="button" class="-m-2 p-2 text-sf-ink/40 hover:text-sf-red text-3xl leading-none">&times;</button>
+        </div>
+        <div class="mt-4 space-y-3">
+          <div>
+            <label for="addd-name" class="block text-xs font-semibold text-sf-ink/55 uppercase tracking-wide mb-1">Name</label>
+            <input id="addd-name" type="text" maxlength="200" placeholder="e.g. Gastonia Nissan"
+              class="w-full rounded-lg border border-black/15 px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
+          </div>
+          <div>
+            <label for="addd-address" class="block text-xs font-semibold text-sf-ink/55 uppercase tracking-wide mb-1">Address (optional)</label>
+            <input id="addd-address" type="text" maxlength="300" placeholder="123 E Franklin Blvd"
+              class="w-full rounded-lg border border-black/15 px-3 py-2.5 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
+          </div>
+          <div>
+            <label for="addd-city" class="block text-xs font-semibold text-sf-ink/55 uppercase tracking-wide mb-1">City (optional)</label>
+            <input id="addd-city" type="text" maxlength="120" placeholder="Gastonia"
+              class="w-full rounded-lg border border-black/15 px-3 py-2.5 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
+          </div>
+          <p class="text-[11px] text-sf-ink/45">Hand-added dealerships show in this list. They join the &ldquo;Next dealership&rdquo; map navigator only once they have coordinates &mdash; the seed script adds those.</p>
+        </div>
+        <div class="mt-5 flex items-center justify-end gap-3">
+          <span id="addd-status" class="text-xs text-sf-ink/55 mr-auto"></span>
+          <button id="addd-cancel" type="button" class="text-sm font-semibold text-sf-ink/60 hover:text-sf-ink">Cancel</button>
+          <button id="addd-save" type="button" class="rounded-lg bg-sf-red hover:bg-sf-redDark text-white font-bold px-4 py-2 text-sm transition disabled:opacity-60">Add</button>
         </div>
       </div>
     </div>
@@ -504,6 +667,51 @@
     </article>
   </template>
 
+  <!-- One outreach row in the Dealerships pane (mirror of the complex row) -->
+  <template id="dealership-row-tpl">
+    <article class="dealership-row rounded-xl bg-white border border-black/10 p-3.5 shadow-sm" data-dealership-id="">
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <h3 class="text-base font-bold dx-name truncate"></h3>
+          <div class="text-xs text-sf-ink/55 dx-addr truncate"></div>
+        </div>
+        <div class="text-right flex-shrink-0">
+          <div class="text-xs font-semibold text-sf-ink/70 dx-leads"></div>
+        </div>
+      </div>
+      <div class="mt-2.5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div>
+          <label class="block text-[10px] font-semibold text-sf-ink/45 uppercase tracking-wide mb-1">Status</label>
+          <select class="dx-status w-full rounded-lg border border-black/15 bg-white px-3 py-2.5 text-base focus:outline-none focus:border-sf-red">
+            <option value="not_started">Not started</option>
+            <option value="contacted">Contacted</option>
+            <option value="partner">Partner</option>
+            <option value="declined">Declined</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-[10px] font-semibold text-sf-ink/45 uppercase tracking-wide mb-1">Last contact</label>
+          <div class="flex items-center gap-2">
+            <span class="dx-last text-xs flex-1"></span>
+            <button type="button" class="dx-mark text-xs font-bold text-white bg-sf-red hover:bg-sf-redDark rounded-lg px-3 py-2.5 flex-shrink-0" style="touch-action:manipulation">Mark today</button>
+          </div>
+        </div>
+      </div>
+      <div class="mt-2.5 flex gap-2.5">
+        <input class="dx-by w-24 flex-shrink-0 rounded-lg border border-black/15 px-2.5 py-2.5 text-base focus:outline-none focus:border-sf-red" placeholder="By" />
+        <textarea rows="1" class="dx-notes flex-1 rounded-lg border border-black/15 px-2.5 py-2.5 text-base focus:outline-none focus:border-sf-red" placeholder="Notes…"></textarea>
+      </div>
+      <div class="mt-1.5 flex justify-end">
+        <button type="button" class="dx-del text-[11px] font-semibold text-sf-ink/40 hover:text-sf-red transition py-2 px-1">Delete</button>
+        <span class="dx-confirm hidden items-center gap-2 text-[11px]">
+          <span class="text-sf-ink/70">Delete?</span>
+          <button type="button" class="dx-yes font-bold text-sf-red hover:underline">Yes</button>
+          <button type="button" class="dx-no font-semibold text-sf-ink/55 hover:underline">Cancel</button>
+        </span>
+      </div>
+    </article>
+  </template>
+
   <script type="module">
     // ---------- views ----------
     const loginView = document.getElementById('view-login');
@@ -530,6 +738,10 @@
     let cxSearch = '';
     let cxSort = 'stale';
     let cxFilter = 'all';
+    let dealerships = [];    // dealership outreach list (mirror of complexes)
+    let dxSearch = '';
+    let dxSort = 'stale';
+    let dxFilter = 'all';
     let pollTimer = null;
     let mobileCol = 'new';   // which status column shows on mobile
 
@@ -618,19 +830,25 @@
     function showPane(pane) {
       document.getElementById('leads-pane').classList.toggle('hidden', pane !== 'leads');
       document.getElementById('complexes-pane').classList.toggle('hidden', pane !== 'complexes');
+      document.getElementById('dealerships-pane').classList.toggle('hidden', pane !== 'dealerships');
       document.getElementById('mileage-pane').classList.toggle('hidden', pane !== 'mileage');
       document.getElementById('tab-leads').setAttribute('aria-pressed', pane === 'leads');
       document.getElementById('tab-complexes').setAttribute('aria-pressed', pane === 'complexes');
+      document.getElementById('tab-dealerships').setAttribute('aria-pressed', pane === 'dealerships');
       document.getElementById('tab-mileage').setAttribute('aria-pressed', pane === 'mileage');
     }
     document.getElementById('tab-leads').addEventListener('click', () => showPane('leads'));
     document.getElementById('tab-complexes').addEventListener('click', () => { showPane('complexes'); renderComplexes(); });
+    document.getElementById('tab-dealerships').addEventListener('click', () => { showPane('dealerships'); renderDealerships(); });
     document.getElementById('tab-mileage').addEventListener('click', () => { showPane('mileage'); ensureDriver(); renderMileage(); });
     showPane('leads');
 
     document.getElementById('complex-search').addEventListener('input', (e) => { cxSearch = e.target.value.toLowerCase(); renderComplexes(); });
     document.getElementById('complex-sort').addEventListener('change', (e) => { cxSort = e.target.value; renderComplexes(); });
     document.getElementById('complex-filter').addEventListener('change', (e) => { cxFilter = e.target.value; renderComplexes(); });
+    document.getElementById('dealer-search').addEventListener('input', (e) => { dxSearch = e.target.value.toLowerCase(); renderDealerships(); });
+    document.getElementById('dealer-sort').addEventListener('change', (e) => { dxSort = e.target.value; renderDealerships(); });
+    document.getElementById('dealer-filter').addEventListener('change', (e) => { dxFilter = e.target.value; renderDealerships(); });
 
     // ---------- settings modal ----------
     const settingsModal  = document.getElementById('settings-modal');
@@ -709,6 +927,45 @@
     document.getElementById('next-refind').addEventListener('click', findNext);
     document.getElementById('next-skip').addEventListener('click', skipNext);
     document.getElementById('next-save').addEventListener('click', saveNext);
+
+    // Delete the current complex straight from the navigator (two-step confirm),
+    // then drop it from the queue + list and show the next one. Lets you clear a
+    // bad seed result (e.g. a non-apartment place) without leaving the field flow.
+    const nextDelBtn     = document.getElementById('next-delete');
+    const nextDelConfirm = document.getElementById('next-delete-confirm');
+    function resetNextDelete() {
+      nextDelBtn.classList.remove('hidden');
+      nextDelConfirm.classList.add('hidden');
+      nextDelConfirm.classList.remove('inline-flex');
+    }
+    nextDelBtn.addEventListener('click', () => {
+      nextDelBtn.classList.add('hidden');
+      nextDelConfirm.classList.remove('hidden');
+      nextDelConfirm.classList.add('inline-flex');
+    });
+    document.getElementById('next-delete-no').addEventListener('click', resetNextDelete);
+    document.getElementById('next-delete-yes').addEventListener('click', deleteFromNext);
+
+    async function deleteFromNext() {
+      const c = nextQueue[nextIdx];
+      if (!c) return;
+      const yes = document.getElementById('next-delete-yes');
+      yes.disabled = true; yes.textContent = 'Deleting…';
+      try {
+        const r = await fetch(`/api/complexes?id=${encodeURIComponent(c.id)}`, { method: 'DELETE', credentials: 'same-origin' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        complexes = complexes.filter(x => x.id !== c.id);
+        nextQueue.splice(nextIdx, 1);     // remove current; nextIdx now points at the next one
+        renderComplexes();
+        showToast(`Deleted — ${c.name || 'complex'}`);
+        if (nextIdx >= nextQueue.length) setNextState('empty', "That's every nearby one for now — raise the days or tap Refresh.");
+        else renderNext();
+      } catch (e) {
+        console.error(e); alert('Delete failed. Try again.');
+      } finally {
+        yes.disabled = false; yes.textContent = 'Yes, delete';
+      }
+    }
 
     // Great-circle distance between two {lat,lng} points, in miles.
     function haversineMiles(a, b) {
@@ -799,6 +1056,7 @@
     function renderNext() {
       const c = nextQueue[nextIdx];
       setNextState('result');
+      resetNextDelete();
       document.getElementById('next-name').textContent = c.name || '(unnamed)';
       document.getElementById('next-addr').textContent = [c.address, c.city].filter(Boolean).join(', ') || '\u2014';
       document.getElementById('next-dist').textContent = `${c._dist.toFixed(1)} mi`;
@@ -839,6 +1097,7 @@
       const data = await r.json();
       leads = Array.isArray(data.leads) ? data.leads : [];
       await loadComplexes();
+      await loadDealerships();
       await loadTrips();
       showView('dash');
       renderAll();
@@ -867,6 +1126,7 @@
           const data = await r.json();
           leads = Array.isArray(data.leads) ? data.leads : [];
           await loadComplexes();
+          await loadDealerships();
           await loadTrips();
           renderAll();
         } catch {}
@@ -980,11 +1240,12 @@
       // apartment community (complex_id resolved to its name, falling back to
       // typed-in free text), the homeowner's address, or the auto lead's vehicle.
       // Hidden when none was given.
-      const complexName = (lead.complex_id && (complexes.find(c => c.id === lead.complex_id) || {}).name)
-        || lead.complex_other || lead.address || lead.vehicle || '';
+      const communityName = (lead.complex_id && (complexes.find(c => c.id === lead.complex_id) || {}).name) || lead.complex_other || '';
+      const dealerName = (lead.dealership_id && (dealerships.find(d => d.id === lead.dealership_id) || {}).name) || lead.dealership_other || '';
+      const detail = communityName || lead.address || [lead.vehicle, dealerName].filter(Boolean).join(' · ') || '';
       const complexLine = card.querySelector('.complex-line');
-      if (complexName) {
-        card.querySelector('.complex-name').textContent = complexName;
+      if (detail) {
+        card.querySelector('.complex-name').textContent = detail;
         complexLine.classList.remove('hidden');
       } else {
         complexLine.classList.add('hidden');
@@ -1065,7 +1326,7 @@
     }
 
     // ---------- complexes (ranking + canvassing) ----------
-    function renderAll() { render(); renderComplexes(); renderMileage(); }
+    function renderAll() { render(); renderComplexes(); renderDealerships(); renderMileage(); }
 
     function leadCountsByComplex() {
       const m = {}; let unlisted = 0;
@@ -1203,6 +1464,354 @@
 
     function markContacted(complex, by) {
       return saveComplex(complex, { mark_contacted: true, last_contacted_by: by || complex.last_contacted_by || '' });
+    }
+
+    // ---------- dealerships (ranking + outreach + navigator) ----------
+    // A faithful mirror of the complexes subsystem above, against /api/dealerships
+    // and the dealership_id attribution on auto leads. Reuses the shared helpers
+    // (haversineMiles, hasCoords, getStartLocation, addStop, relTime, esc, …).
+
+    // Navigator + add-modal state, declared first so the helpers below can touch it.
+    const nextDModal   = document.getElementById('nextd-modal');
+    const nextDStatus  = document.getElementById('nextd-status');
+    const nextDResult  = document.getElementById('nextd-result');
+    const adddModal    = document.getElementById('addd-modal');
+    let nextDStart = null;   // located start point
+    let nextDQueue = [];     // eligible dealerships, nearest first
+    let nextDIdx   = 0;      // position in the queue
+
+    async function loadDealerships() {
+      try {
+        const r = await fetch('/api/dealerships', { credentials: 'same-origin' });
+        if (r.ok) { const d = await r.json(); dealerships = Array.isArray(d.dealerships) ? d.dealerships : []; }
+      } catch {}
+    }
+
+    function leadCountsByDealership() {
+      const m = {}; let unlisted = 0;
+      for (const l of leads) {
+        if (l.dealership_id) {
+          (m[l.dealership_id] || (m[l.dealership_id] = { total: 0, bound: 0 })).total++;
+          if (l.status === 'bound') m[l.dealership_id].bound++;
+        } else if (l.dealership_other) {
+          unlisted++;
+        }
+      }
+      return { m, unlisted };
+    }
+
+    function renderDealerships() {
+      const { m, unlisted } = leadCountsByDealership();
+
+      // ----- ranking: top dealerships by business -----
+      const ranked = dealerships
+        .map(c => ({ c, ...(m[c.id] || { total: 0, bound: 0 }) }))
+        .filter(x => x.total > 0)
+        .sort((a, b) => b.total - a.total || b.bound - a.bound);
+      const rankEl = document.getElementById('ranking-d');
+      if (ranked.length === 0) {
+        rankEl.innerHTML = '<div class="p-6 text-center text-sm text-sf-ink/45">No attributed auto leads yet. Once drivers pick where they bought their car on the form, the leaders show up here.</div>';
+      } else {
+        const rows = ranked.map((x, i) => `
+          <tr class="border-t border-black/5">
+            <td class="px-4 py-2 text-sf-ink/40 text-sm w-8">${i + 1}</td>
+            <td class="px-4 py-2 font-semibold text-sm">${esc(x.c.name)}${x.c.city ? ` <span class="text-sf-ink/45 font-normal">· ${esc(x.c.city)}</span>` : ''}</td>
+            <td class="px-4 py-2 text-right font-bold">${x.total}</td>
+            <td class="px-4 py-2 text-right font-bold text-emerald-700">${x.bound}</td>
+          </tr>`).join('');
+        rankEl.innerHTML = `
+          <table class="w-full text-sm">
+            <thead><tr class="text-[10px] uppercase tracking-wide text-sf-ink/50">
+              <th class="px-4 py-2 text-left w-8">#</th><th class="px-4 py-2 text-left">Dealership</th>
+              <th class="px-4 py-2 text-right">Leads</th><th class="px-4 py-2 text-right">Bound</th>
+            </tr></thead><tbody>${rows}</tbody>
+          </table>
+          ${unlisted ? `<div class="px-4 py-2 text-xs text-sf-ink/45 border-t border-black/5">+ ${unlisted} lead${unlisted === 1 ? '' : 's'} from dealerships typed in but not on the list.</div>` : ''}`;
+      }
+
+      // ----- outreach list -----
+      const listEl = document.getElementById('dealer-list-pane');
+      const countEl = document.getElementById('dealer-count');
+      if (dealerships.length === 0) {
+        countEl.textContent = '';
+        listEl.innerHTML = '<div class="rounded-xl bg-white border border-black/10 p-6 text-center text-sf-ink/55 text-sm">No dealerships yet. Seed the list (the seed script) or tap “+ Add”, then they appear here.</div>';
+        return;
+      }
+      let items = dealerships.slice();
+      if (dxFilter !== 'all') items = items.filter(c => normStatus(c.canvass_status) === dxFilter);
+      if (dxSearch) items = items.filter(c => `${c.name || ''} ${c.city || ''} ${c.address || ''}`.toLowerCase().includes(dxSearch));
+      const staleness = c => c.last_contacted_at ? Date.now() - new Date(c.last_contacted_at).getTime() : Infinity;
+      items.sort((a, b) => {
+        if (dxSort === 'name')  return (a.name || '').localeCompare(b.name || '');
+        if (dxSort === 'leads') return ((m[b.id]?.total) || 0) - ((m[a.id]?.total) || 0);
+        return staleness(b) - staleness(a); // stalest first
+      });
+      const dxNoun = items.length === 1 ? 'dealership' : 'dealerships';
+      countEl.textContent = dxFilter !== 'all'
+        ? `${items.length} ${dxNoun} ${FILTER_PHRASE[dxFilter] || dxFilter}`
+        : `${items.length} ${dxNoun}${dxSearch ? ' matching' : ''}`;
+      if (items.length === 0) {
+        listEl.innerHTML = '<div class="rounded-xl bg-white border border-black/10 p-6 text-center text-sf-ink/55 text-sm">No dealerships match.</div>';
+        return;
+      }
+      const tpl = document.getElementById('dealership-row-tpl');
+      listEl.innerHTML = '';
+      for (const c of items) {
+        const node = tpl.content.firstElementChild.cloneNode(true);
+        renderDealershipRow(node, c, m[c.id]);
+        listEl.appendChild(node);
+      }
+    }
+
+    function renderDealershipRow(row, c, counts) {
+      row.dataset.dealershipId = c.id;
+      row.querySelector('.dx-name').textContent = c.name || '(unnamed)';
+      row.querySelector('.dx-addr').textContent = [c.address, c.city].filter(Boolean).join(', ');
+      row.querySelector('.dx-leads').textContent = counts ? `${counts.total} lead${counts.total === 1 ? '' : 's'}${counts.bound ? ` · ${counts.bound} bound` : ''}` : '';
+
+      const sel = row.querySelector('.dx-status');
+      sel.value = normStatus(c.canvass_status);
+      sel.addEventListener('change', () => saveDealership(c, { canvass_status: sel.value }));
+
+      const last = row.querySelector('.dx-last');
+      const days = c.last_contacted_at ? Math.floor((Date.now() - new Date(c.last_contacted_at).getTime()) / 86400000) : null;
+      if (c.last_contacted_at) {
+        last.textContent = relTime(c.last_contacted_at) + (c.last_contacted_by ? ` · ${c.last_contacted_by}` : '');
+        if (days >= 30) last.classList.add('stale');
+      } else {
+        last.textContent = 'Never';
+        last.classList.add('stale');
+      }
+
+      const by = row.querySelector('.dx-by');
+      by.value = c.last_contacted_by || '';
+      row.querySelector('.dx-mark').addEventListener('click', () => markContactedDealership(c, by.value));
+
+      const notes = row.querySelector('.dx-notes');
+      notes.value = c.notes || '';
+      let nDirty = false;
+      notes.addEventListener('input', () => { nDirty = true; });
+      notes.addEventListener('blur', () => { if (nDirty) { nDirty = false; saveDealership(c, { notes: notes.value }); } });
+      let bDirty = false;
+      by.addEventListener('input', () => { bDirty = true; });
+      by.addEventListener('blur', () => { if (bDirty) { bDirty = false; saveDealership(c, { last_contacted_by: by.value }); } });
+
+      // delete with two-step inline confirm (mirror of the lead card)
+      const del = row.querySelector('.dx-del');
+      const confirmWrap = row.querySelector('.dx-confirm');
+      del.addEventListener('click', () => { del.classList.add('hidden'); confirmWrap.classList.remove('hidden'); confirmWrap.classList.add('inline-flex'); });
+      row.querySelector('.dx-no').addEventListener('click', () => { confirmWrap.classList.add('hidden'); confirmWrap.classList.remove('inline-flex'); del.classList.remove('hidden'); });
+      row.querySelector('.dx-yes').addEventListener('click', () => deleteDealership(c));
+    }
+
+    async function saveDealership(dealership, patch) {
+      try {
+        const r = await fetch('/api/dealerships', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ id: dealership.id, ...patch }),
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const d = await r.json();
+        if (d.dealership) {
+          Object.assign(dealership, d.dealership);
+          const i = dealerships.findIndex(x => x.id === dealership.id);
+          if (i >= 0) dealerships[i] = dealership;
+        }
+        renderDealerships();
+        return true;
+      } catch (e) { console.error(e); alert('Save failed. Try again.'); return false; }
+    }
+
+    function markContactedDealership(dealership, by) {
+      return saveDealership(dealership, { mark_contacted: true, last_contacted_by: by || dealership.last_contacted_by || '' });
+    }
+
+    async function deleteDealership(c) {
+      try {
+        const r = await fetch(`/api/dealerships?id=${encodeURIComponent(c.id)}`, { method: 'DELETE', credentials: 'same-origin' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        dealerships = dealerships.filter(x => x.id !== c.id);
+        nextDQueue = nextDQueue.filter(x => x.id !== c.id);   // keep the navigator queue in sync
+        renderDealerships();
+        showToast(`Deleted — ${c.name || 'dealership'}`);
+      } catch (e) { console.error(e); alert('Delete failed. Try again.'); }
+    }
+
+    // ----- Add dealership modal -----
+    function openAddD() {
+      document.getElementById('addd-name').value = '';
+      document.getElementById('addd-address').value = '';
+      document.getElementById('addd-city').value = '';
+      document.getElementById('addd-status').textContent = '';
+      adddModal.classList.remove('hidden');
+      setTimeout(() => document.getElementById('addd-name').focus(), 50);
+    }
+    function closeAddD() { adddModal.classList.add('hidden'); }
+    async function submitAddD() {
+      const name = document.getElementById('addd-name').value.trim();
+      const statusEl = document.getElementById('addd-status');
+      if (!name) { statusEl.textContent = 'Enter a name.'; document.getElementById('addd-name').focus(); return; }
+      const saveBtn = document.getElementById('addd-save');
+      saveBtn.disabled = true; statusEl.textContent = 'Adding…';
+      try {
+        const r = await fetch('/api/dealerships', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({
+            name,
+            address: document.getElementById('addd-address').value.trim(),
+            city: document.getElementById('addd-city').value.trim(),
+          }),
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const d = await r.json();
+        if (d.dealership) dealerships.push(d.dealership);
+        closeAddD();
+        showToast(`Added — ${name}`);
+        renderDealerships();
+      } catch (e) { console.error(e); statusEl.textContent = 'Add failed. Try again.'; }
+      finally { saveBtn.disabled = false; }
+    }
+    document.getElementById('addd-btn').addEventListener('click', openAddD);
+    document.getElementById('addd-close').addEventListener('click', closeAddD);
+    document.getElementById('addd-cancel').addEventListener('click', closeAddD);
+    document.getElementById('addd-backdrop').addEventListener('click', closeAddD);
+    document.getElementById('addd-save').addEventListener('click', submitAddD);
+
+    // ----- "next dealership near you" navigator (mirror of the complex one) -----
+    function openNextD()  { nextDModal.classList.remove('hidden'); findNextD(); }
+    function closeNextD() { nextDModal.classList.add('hidden'); }
+    document.getElementById('nextd-btn').addEventListener('click', openNextD);
+    document.getElementById('nextd-close').addEventListener('click', closeNextD);
+    document.getElementById('nextd-backdrop').addEventListener('click', closeNextD);
+    document.getElementById('nextd-refind').addEventListener('click', findNextD);
+    document.getElementById('nextd-skip').addEventListener('click', skipNextD);
+    document.getElementById('nextd-save').addEventListener('click', saveNextD);
+
+    function dealerEligible(staleDays) {
+      const cutoff = Date.now() - staleDays * 86400000;
+      return dealerships.filter(c => {
+        if (!hasCoords(c)) return false;
+        if (NEXT_SKIP_STATUSES.has(c.canvass_status)) return false;
+        if (!c.last_contacted_at) return true;
+        return new Date(c.last_contacted_at).getTime() < cutoff;
+      });
+    }
+
+    function setNextDState(state, msg) {
+      nextDResult.classList.toggle('hidden', state !== 'result');
+      nextDStatus.classList.toggle('hidden', state === 'result');
+      if (state !== 'result') nextDStatus.textContent = msg || '';
+    }
+
+    async function findNextD() {
+      setNextDState('loading', 'Finding your location…');
+      const staleDays = Math.max(0, parseInt(document.getElementById('nextd-days').value, 10) || 0);
+      nextDStart = await getStartLocation();
+      const eligible = dealerEligible(staleDays);
+      eligible.forEach(c => { c._dist = haversineMiles(nextDStart, c); });
+      eligible.sort((a, b) => a._dist - b._dist);
+      nextDQueue = eligible;
+      nextDIdx = 0;
+      if (!nextDQueue.length) { setNextDState('empty', 'No dealerships match right now — try a bigger day count above.'); return; }
+      renderNextD();
+    }
+
+    function skipNextD() {
+      nextDIdx++;
+      if (nextDIdx >= nextDQueue.length) { setNextDState('empty', "That's every nearby one for now — raise the days or tap Refresh."); return; }
+      renderNextD();
+    }
+
+    async function saveNextD() {
+      const c = nextDQueue[nextDIdx];
+      if (!c) return;
+      const status = document.getElementById('nextd-status-sel').value;
+      const notes  = document.getElementById('nextd-notes').value;
+      const btn = document.getElementById('nextd-save');
+      btn.disabled = true; btn.textContent = 'Saving…';
+      const ok = await saveDealership(c, {
+        canvass_status: status,
+        notes,
+        mark_contacted: true,
+        last_contacted_by: driver || c.last_contacted_by || '',
+      });
+      if (ok && activeTrip && hasCoords(c)) await addStop({ lat: c.lat, lng: c.lng });
+      btn.disabled = false; btn.textContent = 'Save & next';
+      if (ok) {
+        showToast(`Saved — ${c.name || 'dealership'}: ${CANVASS_LABELS[status] || status}`);
+        skipNextD();
+      }
+    }
+
+    function renderNextD() {
+      const c = nextDQueue[nextDIdx];
+      setNextDState('result');
+      resetNextDDelete();
+      document.getElementById('nextd-name').textContent = c.name || '(unnamed)';
+      document.getElementById('nextd-addr').textContent = [c.address, c.city].filter(Boolean).join(', ') || '—';
+      document.getElementById('nextd-dist').textContent = `${c._dist.toFixed(1)} mi`;
+      const last = c.last_contacted_at ? `last hit ${relTime(c.last_contacted_at)}` : 'never contacted';
+      document.getElementById('nextd-meta').textContent = `${CANVASS_LABELS[c.canvass_status] || 'Not started'} · ${last}`;
+      document.getElementById('nextd-nav').href = `https://www.google.com/maps/dir/?api=1&travelmode=driving&destination=${c.lat},${c.lng}`;
+      document.getElementById('nextd-status-sel').value =
+        (c.canvass_status && c.canvass_status !== 'not_started') ? normStatus(c.canvass_status) : 'contacted';
+      document.getElementById('nextd-notes').value = c.notes || '';
+      const hint = document.getElementById('nextd-trip-hint');
+      if (activeTrip) {
+        let est = '';
+        const ll = { lat: Number(activeTrip.last_lat), lng: Number(activeTrip.last_lng) };
+        if (hasCoords(c) && Number.isFinite(ll.lat) && Number.isFinite(ll.lng)) {
+          est = ` (+~${milesToText(haversineMiles(ll, c) * ROAD_FACTOR)} mi)`;
+        }
+        hint.textContent = `Trip running — saving logs this as a stop${est}`;
+        hint.classList.remove('hidden');
+      } else {
+        hint.classList.add('hidden');
+      }
+      const fromOffice = nextDStart && nextDStart.source === 'office' ? ' · from office (location off)' : '';
+      document.getElementById('nextd-count').textContent = `#${nextDIdx + 1} of ${nextDQueue.length} nearby${fromOffice}`;
+    }
+
+    // Delete the current dealership straight from the navigator (two-step confirm),
+    // then drop it from the queue + list and show the next one.
+    const nextDDelBtn     = document.getElementById('nextd-delete');
+    const nextDDelConfirm = document.getElementById('nextd-delete-confirm');
+    function resetNextDDelete() {
+      nextDDelBtn.classList.remove('hidden');
+      nextDDelConfirm.classList.add('hidden');
+      nextDDelConfirm.classList.remove('inline-flex');
+    }
+    nextDDelBtn.addEventListener('click', () => {
+      nextDDelBtn.classList.add('hidden');
+      nextDDelConfirm.classList.remove('hidden');
+      nextDDelConfirm.classList.add('inline-flex');
+    });
+    document.getElementById('nextd-delete-no').addEventListener('click', resetNextDDelete);
+    document.getElementById('nextd-delete-yes').addEventListener('click', deleteFromNextD);
+
+    async function deleteFromNextD() {
+      const c = nextDQueue[nextDIdx];
+      if (!c) return;
+      const yes = document.getElementById('nextd-delete-yes');
+      yes.disabled = true; yes.textContent = 'Deleting…';
+      try {
+        const r = await fetch(`/api/dealerships?id=${encodeURIComponent(c.id)}`, { method: 'DELETE', credentials: 'same-origin' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        dealerships = dealerships.filter(x => x.id !== c.id);
+        nextDQueue.splice(nextDIdx, 1);   // remove current; nextDIdx now points at the next one
+        renderDealerships();
+        showToast(`Deleted — ${c.name || 'dealership'}`);
+        if (nextDIdx >= nextDQueue.length) setNextDState('empty', "That's every nearby one for now — raise the days or tap Refresh.");
+        else renderNextD();
+      } catch (e) {
+        console.error(e); alert('Delete failed. Try again.');
+      } finally {
+        yes.disabled = false; yes.textContent = 'Yes, delete';
+      }
     }
 
     function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }

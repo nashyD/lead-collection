@@ -163,3 +163,64 @@ create index if not exists leads_product_idx on public.leads (product);
 -- Self-reported vehicle (year/make/model) from the auto funnel (/auto, optional
 -- free text — never required). Mirrors the homeowners 'address' field.
 alter table public.leads add column if not exists vehicle text default '';
+
+-- ---------------------------------------------------------------------------
+-- Car dealerships: the auto-side canvassing list AND the dimension auto leads
+-- attribute to. Exactly mirrors `complexes` (the apartment canvassing list) but
+-- for dealership partnerships. Seeded from the Google Places API
+-- (scripts/seed-dealerships.mjs) and/or added by hand from the dashboard
+-- Dealerships tab. Re-runnable; the seed dedupes on place_id.
+create table if not exists public.dealerships (
+  id                uuid primary key default gen_random_uuid(),
+  name              text not null,
+  address           text default '',
+  city              text default '',
+  lat               numeric,
+  lng               numeric,
+  place_id          text unique,          -- Google Places id; used to dedupe on re-seed
+  canvass_status    text not null default 'not_started'
+                    check (canvass_status in ('not_started','flyered','contacted','declined','partner')),
+  last_contacted_at timestamptz,
+  last_contacted_by text default '',
+  notes             text default '',
+  created_at        timestamptz not null default now()
+);
+
+create index if not exists dealerships_status_idx         on public.dealerships (canvass_status);
+create index if not exists dealerships_last_contacted_idx on public.dealerships (last_contacted_at);
+
+alter table public.dealerships enable row level security;
+
+-- Tie each auto lead to the dealership the driver selected on the /auto form
+-- (self-reported, optional). dealership_id when it matched a known dealership;
+-- dealership_other holds a typed-in name that wasn't in the list. Mirrors the
+-- complex_id / complex_other pair on the renters side.
+-- ON DELETE SET NULL: deleting a dealership (e.g. a bad seed result) drops the
+-- attribution on its leads but keeps the leads themselves — so the dashboard
+-- delete controls always succeed instead of hitting a foreign-key violation.
+alter table public.leads add column if not exists dealership_id    uuid references public.dealerships(id) on delete set null;
+alter table public.leads add column if not exists dealership_other text default '';
+create index if not exists leads_dealership_id_idx on public.leads (dealership_id);
+
+-- Backfill the same ON DELETE SET NULL behavior onto the older complex_id FK,
+-- which was created with the default (NO ACTION / RESTRICT). Without this, the
+-- "delete this complex" control in the Next-complex navigator would fail for any
+-- complex that already has attributed renter leads. Idempotent: drops whatever
+-- FK currently sits on leads.complex_id, then recreates it with SET NULL.
+do $$
+declare cn text;
+begin
+  select con.conname into cn
+    from pg_constraint con
+    join pg_attribute att
+      on att.attrelid = con.conrelid and att.attnum = any(con.conkey)
+   where con.conrelid = 'public.leads'::regclass
+     and con.contype = 'f'
+     and att.attname = 'complex_id';
+  if cn is not null then
+    execute format('alter table public.leads drop constraint %I', cn);
+  end if;
+end $$;
+alter table public.leads
+  add constraint leads_complex_id_fkey
+  foreign key (complex_id) references public.complexes(id) on delete set null;
