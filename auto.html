@@ -551,8 +551,12 @@
     function flagField(el) {
       if (!el) return;
       el.classList.add('border-sf-red', 'ring-2', 'ring-sf-red/20');
+      // Associate the invalid field with the error message for screen readers
+      // (WCAG 3.3.1); the visible text chip is the non-color cue.
+      el.setAttribute('aria-invalid', 'true');
+      el.setAttribute('aria-describedby', 'lead-error');
       el.focus();
-      el.addEventListener('input', () => el.classList.remove('border-sf-red', 'ring-2', 'ring-sf-red/20'), { once: true });
+      el.addEventListener('input', () => { el.classList.remove('border-sf-red', 'ring-2', 'ring-sf-red/20'); el.removeAttribute('aria-invalid'); }, { once: true });
     }
 
     form.addEventListener('submit', async function(e) {
