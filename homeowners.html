@@ -39,35 +39,11 @@
   <meta property="og:description" content="Protect your biggest investment. Get a quote from a local State Farm agent in under 60 seconds." />
   <meta property="og:type" content="website" />
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            sf: {
-              red: '#E22925',
-              redDark: '#B81E1B',
-              ink: '#111111',
-              gray: '#6B7280',
-              cream: '#FDFBF7',
-            },
-          },
-          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
-        },
-      },
-    };
-  </script>
-
-  <style>
-    html { scroll-behavior: smooth; }
-    body { font-family: 'Inter', system-ui, sans-serif; }
-    .text-balance { text-wrap: balance; }
-  </style>
+  <!-- Precompiled Tailwind (tw.css, ~14KB) replaces the ~407KB render-blocking
+       Play CDN; Inter is self-hosted (see /fonts) so no Google Fonts round-trip.
+       Regenerate tw.css after changing classes: bash tools/build-css.sh -->
+  <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="stylesheet" href="/tw.css" />
 
   <!-- Vercel Web Analytics -->
   <script defer src="/_vercel/insights/script.js"></script>
