@@ -107,7 +107,7 @@
           </div>
           <div>
             <label for="language" class="block text-sm font-semibold text-sf-ink" data-i18n="lbl_language">Language you speak</label>
-            <select id="language" name="language" required
+            <select id="language" name="language"
               class="mt-1 w-full rounded-lg border border-black/15 px-3 py-3 text-base bg-white focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20">
               <option value="en">English</option>
               <option value="es">Español</option>
@@ -363,6 +363,10 @@
       if (camp.includes('_ht') || camp.endsWith('ht')) return 'ht';
       if (camp.includes('_es') || camp.endsWith('es')) return 'es';
       if (camp.includes('_en') || camp.endsWith('en')) return 'en';
+      // A previously chosen language (this device) ranks above the OS locale,
+      // but below an explicit ?lang= or the ad's utm_campaign suffix.
+      let stored = ''; try { stored = (localStorage.getItem('lang') || '').toLowerCase(); } catch (e) {}
+      if (['en','es','ht'].includes(stored)) return stored;
       const nav = (navigator.language || '').toLowerCase();          // direct visits
       if (nav.startsWith('ht')) return 'ht';
       if (nav.startsWith('es')) return 'es';
@@ -394,6 +398,12 @@
       // visitor explicitly changes it themselves.
       const langSel = document.getElementById('language');
       if (langSel && langSel.dataset.touched !== '1') langSel.value = lang;
+      // Remember the choice + carry it across the internal cross-sell hop so an
+      // ES/HT visitor doesn't get bounced back to auto-detect on the next page.
+      try { localStorage.setItem('lang', lang); } catch (e) {}
+      document.querySelectorAll('a[data-i18n="cross_link"]').forEach(a => {
+        try { const u = new URL(a.getAttribute('href'), location.origin); u.searchParams.set('lang', lang); a.setAttribute('href', u.pathname + u.search); } catch (e) {}
+      });
       CURRENT_LANG = lang;
     }
 
