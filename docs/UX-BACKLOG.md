@@ -226,3 +226,31 @@ get appended as `Proposed` and re-ranked next cycle.
   persistence (#10) on the link. Copy (es+ht). No contract change.
 - **Measure:** primary submit-rate (should not drop) + success-state cross-sell click-through as
   a new secondary conversion.
+
+---
+
+## Progress log
+
+**2026-06-27 — autonomous loop run.** Shipped #1, #2, #4, #6, #8, #10, #12, #14, #15, #16
+(Cycles 1–5, all merged). Remaining from the original 18: #3/#5/#7 (need Nash data/copy),
+#9/#11 (med-risk; #9 touches the Turnstile guardrail), #13 (needs a Clarity account), #17/#18.
+
+## Market-driven additions (2026-06 research)
+
+From [MARKET-TRENDS.md](./MARKET-TRENDS.md). Ranked by impact; "needs Nash" gates several.
+
+| Item | Impact | Risk | Needs Nash? | Status |
+|---|---|---|---|---|
+| M1 Instant in-language auto-reply text to the lead | High | Med | 10DLC number + compliance + es/ht | Proposed |
+| M2 CAPI Event-Match-Quality + Consent Mode v2 | High | Low | Meta/Google access (CAPI already built) | Proposed |
+| M3 Conversion-Leads quoted/bound events to Meta | High | Low | CRM outcome data | Proposed |
+| M4 Trilingual consent + NC/FTC disclosure audit | High | Med | compliance wording + pro es/ht | Proposed |
+| M5 Renters first-timer education framing | High | Low | es/ht transcreation (EN safe) | Proposed |
+| M6 Intent paths (landlord-proof / non-renewal) | High | Low | operational truth + CRM flag + es/ht | Proposed |
+| M7 Agent-advocacy "real agent, not a chatbot" line | Med | Low | **No** (EN ship, es/ht draft) | **Shipped** |
+| M8 Auto H1 reframe + bundle checkbox | Med | Low | brand call | Proposed |
+| M9 Persistent one-tap click-to-text + click-to-call | Med | Low | **No** (existing number) | **Shipped** |
+| M10 LocalBusiness/InsuranceAgency + FAQ schema | Med | Low | **No** (facts known) | **Shipped** |
+| M11 Real recent Google reviews block | Med | Med | real reviews (FTC: no fabrication) | Proposed |
+| M12 Per-partner tracked landing variant | Med | Low | partner list + reporting | Proposed |
+| M13 STOP/unsubscribe suppression list | Med | Low | CRM/texting platform | Proposed |
