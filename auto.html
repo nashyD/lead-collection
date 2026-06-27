@@ -236,7 +236,7 @@
     <section class="pb-6">
       <div class="rounded-2xl bg-white border border-black/10 p-5 flex items-center gap-4">
         <div class="w-16 h-16 rounded-full border-2 border-sf-red flex-shrink-0 overflow-hidden">
-          <img alt="Anthony Gallant" src="/anthony.jpg" class="w-full h-full object-cover" />
+          <img alt="Anthony Gallant" src="/anthony.jpg" width="64" height="64" loading="lazy" decoding="async" class="w-full h-full object-cover" />
         </div>
         <div>
           <div class="font-bold">Anthony Gallant</div>
@@ -273,6 +273,9 @@
         _badPhone: 'Enter a 10-digit mobile number.',
         _badEmail: 'Enter a valid email address.',
         _verify: 'Please complete the verification below.',
+        // Shown in the success state when the office is closed (outside Mon–Fri 9–5
+        // ET), so we never promise a 5-minute reply at 9pm. No DOM element → set here.
+        success_p_closed: 'Anthony will text you first thing when the office opens (Mon–Fri, 9am).',
       },
       es: {
         _title: 'Seguro de auto — ¿Mismo carro, mejor precio? — Anthony Gallant State Farm',
@@ -304,6 +307,7 @@
         consent: 'Al enviar, aceptas que Anthony Gallant State Farm puede comunicarse contigo por texto y correo electrónico sobre tu cotización. Pueden aplicarse tarifas estándar. Sin spam.',
         success_h: '¡Listo! Revisa tu teléfono.',
         success_p: 'Anthony te enviará un mensaje dentro de 5 minutos en horario de oficina.',
+        success_p_closed: 'Anthony te enviará un mensaje apenas abra la oficina (lun–vie, 9am).',
         pillar1_big: 'Combina',
         pillar1: 'Agrega tu casa y ambos precios bajan',
         pillar2: 'Para cambiarte',
@@ -351,6 +355,7 @@
         consent: 'Lè w voye sa, ou dakò pou Anthony Gallant State Farm kapab kontakte w pa tèks ak imèl konsènan pri w la. Tarif estanda kapab aplike. Pa gen spam.',
         success_h: 'Nou resevwa l — tcheke telefòn ou.',
         success_p: 'Anthony ap voye yon mesaj ba ou nan 5 minit pandan lè biwo a louvri.',
+        success_p_closed: 'Anthony ap voye yon mesaj ba ou kou biwo a louvri (lendi–vandredi, 9è nan maten).',
         pillar1_big: 'Konbine',
         pillar1: 'Ajoute kay ou epi toude pri yo bese',
         pillar2: 'Pou chanje',
@@ -611,7 +616,7 @@
         if (window.fbq) fbq('track', 'Lead', { content_name: LEAD_PRODUCT }, { eventID: EVENT_ID });
         if (window.gtag) {
           gtag('event', 'generate_lead', { currency: 'USD', value: 0, product: LEAD_PRODUCT });
-          if (GOOGLE_ADS.id && GOOGLE_ADS.label) gtag('event', 'conversion', { send_to: GOOGLE_ADS.id + '/' + GOOGLE_ADS.label });
+          if (GOOGLE_ADS.id && GOOGLE_ADS.label) gtag('event', 'conversion', { send_to: GOOGLE_ADS.id + '/' + GOOGLE_ADS.label, transaction_id: EVENT_ID });
         }
       } catch (err) {
         console.error(err);
@@ -626,9 +631,29 @@
       }
     });
 
+    // Office hours: Mon–Fri 9am–5pm America/New_York (matches the JSON-LD). Used to
+    // keep the success copy honest. Fail-soft: any error assumes "open" so the
+    // default 5-minute copy still shows.
+    function officeOpenNow() {
+      try {
+        const p = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', hour12: false }).formatToParts(new Date());
+        const wd = p.find(x => x.type === 'weekday').value;
+        let hr = Number(p.find(x => x.type === 'hour').value);
+        if (hr === 24) hr = 0;
+        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(wd) && hr >= 9 && hr < 17;
+      } catch (e) { return true; }
+    }
+
     // Reveal the success state, hide the sticky CTA, and bring it into view so a
     // visitor who scrolled while filling sees the confirmation + the call CTA.
     function showSuccess() {
+      // Keep the "5 minutes" promise honest — swap to the office-closed line when
+      // the office is closed, in whatever language is showing.
+      try {
+        const sp = successBox.querySelector('[data-i18n="success_p"]');
+        const L = I18N[CURRENT_LANG] || I18N.en;
+        if (sp && !officeOpenNow() && L.success_p_closed) sp.textContent = L.success_p_closed;
+      } catch (e) {}
       successBox.classList.remove('hidden');
       const sticky = document.getElementById('sticky-cta');
       if (sticky) { sticky.dataset.done = '1'; sticky.classList.add('hidden'); }

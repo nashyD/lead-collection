@@ -229,7 +229,7 @@
     <section class="pb-6">
       <div class="rounded-2xl bg-white border border-black/10 p-5 flex items-center gap-4">
         <div class="w-16 h-16 rounded-full border-2 border-sf-red flex-shrink-0 overflow-hidden">
-          <img alt="Anthony Gallant" src="/anthony.jpg" class="w-full h-full object-cover" />
+          <img alt="Anthony Gallant" src="/anthony.jpg" width="64" height="64" loading="lazy" decoding="async" class="w-full h-full object-cover" />
         </div>
         <div>
           <div class="font-bold">Anthony Gallant</div>
@@ -242,7 +242,7 @@
     <!-- Cross-sell: renters -->
     <section class="pb-12 text-center text-sm text-sf-ink/65">
       <span data-i18n="cross_sell">Renting instead?</span>
-      <a href="/" class="font-semibold text-sf-red hover:underline" data-i18n="cross_link">Renters insurance from $5.50/mo →</a>
+      <a href="/" class="font-semibold text-sf-red hover:underline" data-i18n="cross_link">Get a renters quote →</a>
     </section>
 
     <footer class="pb-24 sm:pb-10 text-xs text-sf-ink/50 text-center">
@@ -266,6 +266,9 @@
         _badPhone: 'Enter a 10-digit mobile number.',
         _badEmail: 'Enter a valid email address.',
         _verify: 'Please complete the verification below.',
+        // Shown in the success state when the office is closed (outside Mon–Fri 9–5
+        // ET), so we never promise a 5-minute reply at 9pm. No DOM element → set here.
+        success_p_closed: 'Anthony will text you first thing when the office opens (Mon–Fri, 9am).',
       },
       es: {
         _title: 'Seguro de propietarios de vivienda en minutos — Anthony Gallant State Farm',
@@ -295,6 +298,7 @@
         consent: 'Al enviar, aceptas que Anthony Gallant State Farm puede comunicarse contigo por texto y correo electrónico sobre tu cotización. Pueden aplicarse tarifas estándar. Sin spam.',
         success_h: '¡Listo! Revisa tu teléfono.',
         success_p: 'Anthony te enviará un mensaje dentro de 5 minutos en horario de oficina.',
+        success_p_closed: 'Anthony te enviará un mensaje apenas abra la oficina (lun–vie, 9am).',
         pillar1_big: 'Local',
         pillar1: 'Agente en Gastonia a quien puedes llamar',
         pillar2: 'Para cotizar',
@@ -306,7 +310,7 @@
         cov4: '<strong class="text-sf-ink">Pérdida de uso.</strong> Costos de hotel si un daño cubierto deja tu casa inhabitable.',
         agent_role: 'Agente de State Farm · Gastonia, NC',
         cross_sell: '¿Rentas en vez de ser dueño?',
-        cross_link: 'Seguro para inquilinos desde $5.50/mes →',
+        cross_link: 'Cotiza tu seguro de inquilinos →',
         footer: 'Anthony Gallant, Agente de State Farm. State Farm Mutual Automobile Insurance Company, Bloomington, IL. La cobertura está sujeta a términos, condiciones y disponibilidad.',
         tracking_notice: 'Este sitio usa cookies y herramientas de medición publicitaria (Meta, Google) para mejorar nuestros anuncios.',
       },
@@ -340,6 +344,7 @@
         consent: 'Lè w voye sa, ou dakò pou Anthony Gallant State Farm kapab kontakte w pa tèks ak imèl konsènan pri w la. Tarif estanda kapab aplike. Pa gen spam.',
         success_h: 'Nou resevwa l — tcheke telefòn ou.',
         success_p: 'Anthony ap voye yon mesaj ba ou nan 5 minit pandan lè biwo a louvri.',
+        success_p_closed: 'Anthony ap voye yon mesaj ba ou kou biwo a louvri (lendi–vandredi, 9è nan maten).',
         pillar1_big: 'Lokal',
         pillar1: 'Ajan nan Gastonia ou ka rele',
         pillar2: 'Pou jwenn yon pri',
@@ -351,7 +356,7 @@
         cov4: '<strong class="text-sf-ink">Pèt itilizasyon.</strong> Frè otèl si yon domaj ki kouvri fè kay ou pa ka abite.',
         agent_role: 'Ajan State Farm · Gastonia, NC',
         cross_sell: 'Ou se lokatè pito?',
-        cross_link: 'Asirans pou lokatè apati $5.50/mwa →',
+        cross_link: 'Jwenn yon pri pou asirans lokatè →',
         footer: 'Anthony Gallant, Ajan State Farm. State Farm Mutual Automobile Insurance Company, Bloomington, IL. Kouvèti a sijè a tèm, kondisyon, ak disponiblite.',
         tracking_notice: 'Sit sa a sèvi ak cookies ak zouti mezi piblisite (Meta, Google) pou amelyore piblisite nou yo.',
       },
@@ -588,7 +593,7 @@
         if (window.fbq) fbq('track', 'Lead', { content_name: LEAD_PRODUCT }, { eventID: EVENT_ID });
         if (window.gtag) {
           gtag('event', 'generate_lead', { currency: 'USD', value: 0, product: LEAD_PRODUCT });
-          if (GOOGLE_ADS.id && GOOGLE_ADS.label) gtag('event', 'conversion', { send_to: GOOGLE_ADS.id + '/' + GOOGLE_ADS.label });
+          if (GOOGLE_ADS.id && GOOGLE_ADS.label) gtag('event', 'conversion', { send_to: GOOGLE_ADS.id + '/' + GOOGLE_ADS.label, transaction_id: EVENT_ID });
         }
       } catch (err) {
         console.error(err);
@@ -603,9 +608,29 @@
       }
     });
 
+    // Office hours: Mon–Fri 9am–5pm America/New_York (matches the JSON-LD). Used to
+    // keep the success copy honest. Fail-soft: any error assumes "open" so the
+    // default 5-minute copy still shows.
+    function officeOpenNow() {
+      try {
+        const p = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short', hour: 'numeric', hour12: false }).formatToParts(new Date());
+        const wd = p.find(x => x.type === 'weekday').value;
+        let hr = Number(p.find(x => x.type === 'hour').value);
+        if (hr === 24) hr = 0;
+        return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(wd) && hr >= 9 && hr < 17;
+      } catch (e) { return true; }
+    }
+
     // Reveal the success state, hide the sticky CTA, and bring it into view so a
     // visitor who scrolled while filling sees the confirmation + the call CTA.
     function showSuccess() {
+      // Keep the "5 minutes" promise honest — swap to the office-closed line when
+      // the office is closed, in whatever language is showing.
+      try {
+        const sp = successBox.querySelector('[data-i18n="success_p"]');
+        const L = I18N[CURRENT_LANG] || I18N.en;
+        if (sp && !officeOpenNow() && L.success_p_closed) sp.textContent = L.success_p_closed;
+      } catch (e) {}
       successBox.classList.remove('hidden');
       const sticky = document.getElementById('sticky-cta');
       if (sticky) { sticky.dataset.done = '1'; sticky.classList.add('hidden'); }

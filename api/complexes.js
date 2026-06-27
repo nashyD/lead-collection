@@ -78,7 +78,13 @@ export default async function handler(req, res) {
       if (typeof body.last_contacted_by === 'string') patch.last_contacted_by = body.last_contacted_by.slice(0, 120);
       // Partner channel: the leasing-office email (used for proof-of-coverage +
       // monthly recaps) and an optional contact name. Empty string clears it.
-      if (typeof body.partner_email === 'string') patch.partner_email = body.partner_email.trim().slice(0, 200);
+      if (typeof body.partner_email === 'string') {
+        const pe = body.partner_email.trim().slice(0, 200);
+        // Validate the shape at the write boundary so a typo'd office address can't
+        // save silently and then never receive a proof/recap. Empty still clears it.
+        if (pe && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pe)) return res.status(400).json({ error: 'Invalid leasing-office email' });
+        patch.partner_email = pe;
+      }
       if (typeof body.partner_contact === 'string') patch.partner_contact = body.partner_contact.trim().slice(0, 120);
       if (body.mark_contacted) {
         patch.last_contacted_at = new Date().toISOString();
