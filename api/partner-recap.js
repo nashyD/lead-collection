@@ -66,10 +66,18 @@ export default async function handler(req, res) {
     if (!cr.ok) throw new Error(`complexes fetch ${cr.status}`);
     const partners = (await cr.json()).filter(c => /.+@.+\..+/.test(String(c.partner_email || '').trim()));
 
-    const sent = [], failed = [];
+    const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+    const sent = [], skipped = [], failed = [];
     for (const c of partners) {
       const count = counts[c.id] || 0;
       if (count < 1) continue; // nothing to report — don't email an empty recap
+      // Claim the (community, month) slot BEFORE sending so a double-click, a retry,
+      // or two staff running this can't email the same leasing office twice. The PK
+      // on (complex_id, month) makes the claim atomic — concurrent runs race to
+      // insert and only one wins.
+      const claim = await claimRecap(base, c.id, monthKey);
+      if (claim === 'duplicate') { skipped.push({ name: c.name || '(unnamed)', count }); continue; }
+      if (claim === 'error') { failed.push({ name: c.name || '(unnamed)', count }); continue; }
       try {
         await resendSend({
           to: [String(c.partner_email).trim()],
@@ -80,14 +88,49 @@ export default async function handler(req, res) {
         sent.push({ name: c.name || '(unnamed)', count });
       } catch (e) {
         console.error('recap_send_failed', c.id, e);
+        // Roll the claim back so a later retry can re-send this one.
+        await releaseRecap(base, c.id, monthKey);
         failed.push({ name: c.name || '(unnamed)', count });
       }
     }
-    return res.status(200).json({ ok: true, month: monthLabel, sent, failed });
+    return res.status(200).json({ ok: true, month: monthLabel, sent, skipped, failed });
   } catch (e) {
     console.error('partner_recap_failed', e);
     return res.status(502).json({ error: 'Could not send recaps.' });
   }
+}
+
+// Atomically claim a (complex, month) recap slot via an insert that ignores PK
+// conflicts. Returns 'claimed' when THIS call inserted the row (safe to send),
+// 'duplicate' when the row already existed (already sent this month — skip), or
+// 'error' when the ledger write itself failed (skip rather than risk an
+// unrecorded send). The (complex_id, month) primary key is the concurrency lock.
+async function claimRecap(base, complexId, month) {
+  try {
+    const r = await fetch(`${base}/rest/v1/partner_recaps_sent`, {
+      method: 'POST',
+      headers: sbHeaders({ 'Content-Type': 'application/json', Prefer: 'return=representation,resolution=ignore-duplicates' }),
+      body: JSON.stringify({ complex_id: complexId, month }),
+    });
+    if (!r.ok) return 'error';
+    const rows = await r.json().catch(() => []);
+    return Array.isArray(rows) && rows.length > 0 ? 'claimed' : 'duplicate';
+  } catch (e) {
+    console.error('recap_claim_failed', complexId, e);
+    return 'error';
+  }
+}
+
+// Release a claimed slot — only when the email send failed — so a retry can
+// re-send. Best-effort: a failed release just means that office misses this
+// month's recap, which is the safe direction (never a double-send).
+async function releaseRecap(base, complexId, month) {
+  try {
+    await fetch(`${base}/rest/v1/partner_recaps_sent?complex_id=eq.${encodeURIComponent(complexId)}&month=eq.${encodeURIComponent(month)}`, {
+      method: 'DELETE',
+      headers: sbHeaders({ Prefer: 'return=minimal' }),
+    });
+  } catch (e) { console.error('recap_release_failed', complexId, e); }
 }
 
 function recapHtml(c, count, monthLabel) {

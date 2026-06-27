@@ -251,3 +251,20 @@ alter table public.complexes add column if not exists partner_contact text defau
 alter table public.leads add column if not exists share_with_property boolean not null default false;
 alter table public.leads add column if not exists proof_sent_at timestamptz;
 create index if not exists leads_share_with_property_idx on public.leads (share_with_property) where share_with_property;
+
+-- ---------------------------------------------------------------------------
+-- Partner-recap send ledger. The monthly "N residents covered" recap
+-- (api/partner-recap.js) must be send-once per (community, month): a double
+-- click, a retry, or two staff running it should NOT re-email the same leasing
+-- office. The handler claims each (complex_id, month) row before the email goes
+-- out; the composite primary key makes that claim atomic, so two concurrent
+-- runs can't both send. on delete cascade keeps the ledger tidy if a complex is
+-- removed.
+create table if not exists public.partner_recaps_sent (
+  complex_id uuid not null references public.complexes(id) on delete cascade,
+  month      text not null,                          -- 'YYYY-MM' (UTC) window the recap covers
+  sent_at    timestamptz not null default now(),
+  primary key (complex_id, month)
+);
+
+alter table public.partner_recaps_sent enable row level security;
