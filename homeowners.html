@@ -118,7 +118,7 @@
             <input id="address" name="address" type="text" autocomplete="street-address" enterkeyhint="send"
               placeholder="123 Main St, Gastonia" data-i18n-ph="address_ph"
               class="mt-1 w-full rounded-lg border border-black/15 px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
-            <p class="mt-1 text-xs text-sf-ink/50" data-i18n="address_hint">Helps us quote the right home — skip it if you'd rather share by text.</p>
+            <p class="mt-1 text-xs text-sf-ink/70" data-i18n="address_hint">Helps us quote the right home — skip it if you'd rather share by text.</p>
           </div>
 
           <!-- Product line — tells the server this is a homeowners lead -->
@@ -147,7 +147,7 @@
             Free quote. No obligation. Takes about 60 seconds.
           </p>
 
-          <p class="text-xs text-sf-ink/55 text-center" data-i18n="consent">
+          <p class="text-xs text-sf-ink/70 text-center" data-i18n="consent">
             By submitting you agree Anthony Gallant State Farm may text and email you about your quote. Standard rates apply. No spam.
           </p>
 
@@ -221,7 +221,7 @@
       <a href="/" class="font-semibold text-sf-red hover:underline" data-i18n="cross_link">Get a renters quote →</a>
     </section>
 
-    <footer class="pb-24 sm:pb-10 text-xs text-sf-ink/50 text-center">
+    <footer class="pb-24 sm:pb-10 text-xs text-sf-ink/70 text-center">
       &copy; <span id="year"></span> <span data-i18n="footer">Anthony Gallant, State Farm Agent. State Farm Mutual Automobile Insurance Company, Bloomington, IL. Coverage subject to terms, conditions, and availability.</span>
       <span id="tracking-notice" class="hidden block mt-2" data-i18n="tracking_notice">This site uses cookies and ad-measurement tools (Meta, Google) to improve our ads.</span>
     </footer>
@@ -376,7 +376,7 @@
       });
       if (dict._title) document.title = dict._title;
       // toggle styling
-      const setBtn = (id, on) => { const b = document.getElementById(id); if (b) b.className = 'hover:text-sf-red px-2 py-2 -my-1 inline-block ' + (on ? 'text-sf-red' : 'text-sf-ink/45'); };
+      const setBtn = (id, on) => { const b = document.getElementById(id); if (!b) return; b.className = 'hover:text-sf-red px-2 min-h-[44px] inline-flex items-center ' + (on ? 'text-sf-red underline underline-offset-4' : 'text-sf-ink/70'); b.setAttribute('aria-pressed', on ? 'true' : 'false'); };
       setBtn('lang-en', lang === 'en');
       setBtn('lang-es', lang === 'es');
       setBtn('lang-ht', lang === 'ht');
