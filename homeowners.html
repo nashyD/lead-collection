@@ -506,6 +506,15 @@
     // Product line for the conversion event (homeowners/auto carry a hidden
     // product field; the renters page has none, so it defaults to 'renters').
     const LEAD_PRODUCT = (document.querySelector('input[name="product"]') || {}).value || 'renters';
+    // form_start: fire once when the visitor first focuses any field — the
+    // high-frequency proxy the UX loop watches at low traffic (no PII). Also
+    // records the start time so a successful submit can report time-to-complete.
+    let formStartedAt = 0;
+    form.addEventListener('focusin', function () {
+      formStartedAt = (window.performance && performance.now) ? performance.now() : Date.now();
+      try { if (window.gtag) gtag('event', 'form_start', { product: LEAD_PRODUCT }); } catch (e) {}
+      try { if (window.fbq) fbq('track', 'InitiateCheckout', { content_name: LEAD_PRODUCT }); } catch (e) {}
+    }, { once: true });
 
     function escAttr(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
     // Show an error in the live-region chip and scroll it into view (on mobile it
@@ -576,9 +585,10 @@
         if (!res.ok) throw new Error('Bad response: ' + res.status);
         form.classList.add('hidden');
         showSuccess();
+        const ttcSeconds = formStartedAt ? Math.round(((window.performance && performance.now ? performance.now() : Date.now()) - formStartedAt) / 1000) : 0;
         if (window.fbq) fbq('track', 'Lead', { content_name: LEAD_PRODUCT }, { eventID: EVENT_ID });
         if (window.gtag) {
-          gtag('event', 'generate_lead', { currency: 'USD', value: 0, product: LEAD_PRODUCT });
+          gtag('event', 'generate_lead', { currency: 'USD', value: 0, product: LEAD_PRODUCT, time_to_complete: ttcSeconds });
           if (GOOGLE_ADS.id && GOOGLE_ADS.label) gtag('event', 'conversion', { send_to: GOOGLE_ADS.id + '/' + GOOGLE_ADS.label, transaction_id: EVENT_ID });
         }
       } catch (err) {
