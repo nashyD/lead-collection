@@ -16,7 +16,7 @@ module.exports = {
     extend: {
       colors: {
         sf: {
-          red: '#E22925',
+          red: '#D52420',
           redDark: '#B81E1B',
           ink: '#111111',
           gray: '#6B7280',

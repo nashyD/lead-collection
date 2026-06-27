@@ -14,3 +14,26 @@
 html { scroll-behavior: smooth; }
 body { font-family: 'Inter', system-ui, sans-serif; }
 .text-balance { text-wrap: balance; }
+
+/* --- Accessibility (UX loop, Cycle 1) --- */
+/* WCAG 2.4.7 Focus Visible: a clearly visible focus indicator on every control,
+   overriding the utility `focus:outline-none` the inputs carry. focus-visible so
+   it shows for keyboard users without ringing on mouse clicks. */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid #B81E1B !important;
+  outline-offset: 2px !important;
+  border-radius: 3px;
+}
+/* WCAG 1.4.3: the default placeholder (~2.5:1) fails AA; bump to a >=4.5:1 gray. */
+input::placeholder, textarea::placeholder { color: #5b6472; opacity: 1; }
+/* WCAG 2.4.11 (2.2): keep a focused control clear of the fixed sticky CTA. */
+html { scroll-padding-bottom: 5.5rem; }
+/* Respect reduced-motion: stop the submit spinner + disable smooth scrolling. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
