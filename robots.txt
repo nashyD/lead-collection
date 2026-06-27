@@ -5,5 +5,7 @@ Disallow: /dashboard
 Disallow: /api/
 # Build inputs for the precompiled tw.css — not content.
 Disallow: /tools/
+# Internal process docs (UX improvement loop) — not content.
+Disallow: /docs/
 
 Sitemap: https://www.gallantrenters.com/sitemap.xml
