@@ -30,7 +30,17 @@
       "addressCountry": "US"
     },
     "areaServed": "Gaston County, NC",
-    "openingHours": "Mo-Fr 09:00-17:00"
+    "openingHours": "Mo-Fr 09:00-17:00",
+    "knowsLanguage": ["en", "es", "ht"],
+    "hasOfferCatalog": {
+      "@type": "OfferCatalog",
+      "name": "Insurance",
+      "itemListElement": [
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Renters insurance" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Homeowners insurance" } },
+        { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Auto insurance" } }
+      ]
+    }
   }
   </script>
 
@@ -221,7 +231,11 @@
         <div>
           <div class="font-bold">Anthony Gallant</div>
           <div class="text-sm text-sf-ink/65" data-i18n="agent_role">State Farm Agent · Gastonia, NC</div>
-          <a href="tel:+17048538001" class="text-sm text-sf-red font-semibold hover:underline">(704) 853-8001</a>
+          <div class="mt-0.5 text-sm font-semibold">
+            <a href="tel:+17048538001" class="text-sf-red hover:underline">(704) 853-8001</a>
+            <a href="sms:+17048538001" class="ml-2 text-sf-red hover:underline" data-i18n="agent_text">Text</a>
+          </div>
+          <p class="mt-1 text-xs text-sf-ink/70" data-i18n="agent_advocacy">A real local agent, not a call center or chatbot. Anthony helps with your claim, too.</p>
         </div>
       </div>
     </section>
@@ -297,6 +311,8 @@
         cov3: '<strong class="text-sf-ink">$300,000+ de responsabilidad civil</strong> si alguien se lastima en tu apartamento o dañas el edificio accidentalmente.',
         cov4: '<strong class="text-sf-ink">Pérdida de uso.</strong> Costos de hotel si tu apartamento queda inhabitable.',
         agent_role: 'Agente de State Farm · Gastonia, NC',
+        agent_text: 'Texto',
+        agent_advocacy: 'Un agente local de verdad, no un centro de llamadas ni un chatbot. Anthony también te ayuda con tu reclamo.',
         cross_sell: '¿Eres dueño de tu casa?',
         cross_link: 'Cotiza tu seguro de propietarios →',
         footer: 'Anthony Gallant, Agente de State Farm. State Farm Mutual Automobile Insurance Company, Bloomington, IL. La cobertura está sujeta a términos, condiciones y disponibilidad.',
@@ -344,6 +360,8 @@
         cov3: '<strong class="text-sf-ink">$300,000+ responsablite</strong> si yon moun blese nan apatman w oswa ou domaje bilding lan san fè espre.',
         cov4: '<strong class="text-sf-ink">Pèt itilizasyon.</strong> Frè otèl si apatman w pa ka abite ankò.',
         agent_role: 'Ajan State Farm · Gastonia, NC',
+        agent_text: 'Tèks',
+        agent_advocacy: 'Yon vrè ajan lokal, pa yon sant apèl ni yon chatbot. Anthony ede w ak reklamasyon w tou.',
         cross_sell: 'Ou se mèt kay ou?',
         cross_link: 'Jwenn yon pri pou asirans kay →',
         footer: 'Anthony Gallant, Ajan State Farm. State Farm Mutual Automobile Insurance Company, Bloomington, IL. Kouvèti a sijè a tèm, kondisyon, ak disponiblite.',
