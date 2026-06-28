@@ -1,0 +1,41 @@
+# Fails a PR (or push to main) when the committed tw.css no longer matches the
+# Tailwind sources it is built from. This catches a class edit in one of the
+# landing pages that shipped without running `bash tools/build-css.sh`, which
+# would otherwise leave elements unstyled on a live paid-ad funnel.
+name: css-drift
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'homeowners.html'
+      - 'auto.html'
+      - 'tools/**'
+      - 'tw.css'
+      - '.github/workflows/css-drift.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'homeowners.html'
+      - 'auto.html'
+      - 'tools/**'
+      - 'tw.css'
+
+jobs:
+  verify:
+    name: tw.css matches its Tailwind sources
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Rebuild precompiled CSS
+        run: bash tools/build-css.sh
+      - name: Fail if tw.css is stale
+        run: |
+          if ! git diff --exit-code -- tw.css; then
+            echo "::error file=tw.css::tw.css is out of date with its Tailwind sources. Run 'bash tools/build-css.sh' and commit the result."
+            exit 1
+          fi
