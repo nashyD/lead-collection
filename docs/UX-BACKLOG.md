@@ -231,9 +231,17 @@ get appended as `Proposed` and re-ranked next cycle.
 
 ## Progress log
 
-**2026-06-27 — autonomous loop run.** Shipped #1, #2, #4, #6, #8, #10, #12, #14, #15, #16
-(Cycles 1–5, all merged). Remaining from the original 18: #3/#5/#7 (need Nash data/copy),
-#9/#11 (med-risk; #9 touches the Turnstile guardrail), #13 (needs a Clarity account), #17/#18.
+**2026-06-27 — autonomous loop run.** Shipped backlog #1, #2, #4, #6, #8, #10, #12, #14, #15, #16,
+then the two med-risk items **#9** (defer third-party tags — Turnstile kept on the early path) and
+**#11** (no-FOUC language gate) — all merged; the med-risk pair passed a 5-lens adversarial review
+(ship, no blockers/majors). Remaining from the original 18, all needing Nash data/copy/accounts:
+#3 (native ES/HT review), #5 (real social proof), #7 (quantified hero), #13 (Clarity account),
+#17 (covered-block to home/auto), #18 (cross-sell→success).
+
+> **Known tradeoff (#9):** analytics now load at idle / first form-focus, so a sub-~1.2s bounce that
+> never touches the form records no Meta PageView (no `pagehide` flush). Conversions (Lead) are never
+> affected. Dormant until analytics IDs are set. When wiring Meta, decide: accept (cleaner signal +
+> smaller CIPA pre-consent window) or fire PageView eagerly in the `/api/config` `.then()`.
 
 ## Market-driven additions (2026-06 research)
 

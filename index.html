@@ -3,6 +3,38 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <!-- No-FOUC language gate: hide the page for ES/HT visitors until the correct
+       translation is applied (English renders immediately, no penalty), so an
+       ES/HT visitor never sees an English flash or the hero reflow. Detection
+       mirrors detectLang() in the script below — keep the two in sync. A 1s
+       failsafe always reveals, so a JS error can never leave a blank page; JS-off
+       degrades gracefully (this never runs, English shows). -->
+  <style>html.i18n-pending body{visibility:hidden}</style>
+  <script>
+    (function () {
+      try {
+        var p = new URLSearchParams(location.search);
+        var x = (p.get('lang') || '').toLowerCase();
+        var c = (p.get('utm_campaign') || '').toLowerCase();
+        var st = ''; try { st = (localStorage.getItem('lang') || '').toLowerCase(); } catch (e) {}
+        var nv = (navigator.language || '').toLowerCase();
+        var lang = 'en';
+        if (['en', 'es', 'ht'].indexOf(x) >= 0) lang = x;
+        else if (c.indexOf('_ht') >= 0 || /ht$/.test(c)) lang = 'ht';
+        else if (c.indexOf('_es') >= 0 || /es$/.test(c)) lang = 'es';
+        else if (c.indexOf('_en') >= 0 || /en$/.test(c)) lang = 'en';
+        else if (['en', 'es', 'ht'].indexOf(st) >= 0) lang = st;
+        else if (nv.indexOf('ht') === 0) lang = 'ht';
+        else if (nv.indexOf('es') === 0) lang = 'es';
+        document.documentElement.lang = lang;
+        if (lang !== 'en') {
+          document.documentElement.classList.add('i18n-pending');
+          setTimeout(function () { document.documentElement.classList.remove('i18n-pending'); }, 1000);
+        }
+      } catch (e) {}
+    })();
+  </script>
   <title>Renters Insurance from $5.50/mo — Anthony Gallant State Farm</title>
   <meta name="description" content="Get covered in 5 minutes. Renters insurance from $5.50/month with Anthony Gallant, your local State Farm agent." />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -426,6 +458,9 @@
         try { const u = new URL(a.getAttribute('href'), location.origin); u.searchParams.set('lang', lang); a.setAttribute('href', u.pathname + u.search); } catch (e) {}
       });
       CURRENT_LANG = lang;
+      // No-FOUC reveal: the correct language is now applied, so drop the head gate
+      // (it hid the page for ES/HT visitors to prevent an English flash).
+      document.documentElement.classList.remove('i18n-pending');
     }
 
     // ---------- bootstrap ----------
@@ -523,33 +558,53 @@
     // so the form still works while Turnstile isn't configured yet.
     let turnstileToken = '';
     let turnstileRequired = false;
+    // Defer non-critical work to browser idle (falls back to a short timeout).
+    function whenIdle(fn) {
+      if ('requestIdleCallback' in window) { requestIdleCallback(fn, { timeout: 3000 }); }
+      else { setTimeout(fn, 1200); }
+    }
+    // Analytics (Meta Pixel + Google tags) aren't needed for first paint and hit slow
+    // third-party origins, so we keep them off the initial-load path: load at idle, or
+    // the moment the visitor first touches the form — whichever comes first. The init
+    // funcs define the fbq/gtag command queues synchronously, so ensureAnalytics() is
+    // also called at the top of the form_start handler — that guarantees form_start /
+    // Lead are never dropped even on a fast focus. Deferring also shrinks the
+    // pre-interaction pixel-firing window (a CIPA/wiretap concern). Idempotent.
+    let analyticsCfg = null, analyticsStarted = false;
+    function ensureAnalytics() {
+      if (analyticsStarted || !analyticsCfg) return;
+      analyticsStarted = true;
+      if (analyticsCfg.metaPixelId) initMetaPixel(analyticsCfg.metaPixelId);
+      if (analyticsCfg.ga4Id || analyticsCfg.googleAdsId) initGoogleTags(analyticsCfg.ga4Id || '', analyticsCfg.googleAdsId || '');
+    }
     fetch('/api/config')
       .then(r => (r.ok ? r.json() : {}))
       .then(cfg => {
         cfg = cfg || {};
-        // Meta Pixel loads only when an ID is configured; PageView fires here.
-        if (cfg.metaPixelId) initMetaPixel(cfg.metaPixelId);
-        // Google tags (GA4 + Google Ads) — load only when configured; dormant otherwise.
-        if (cfg.ga4Id || cfg.googleAdsId) {
-          GOOGLE_ADS = { id: cfg.googleAdsId || '', label: cfg.googleAdsLabel || '' };
-          initGoogleTags(cfg.ga4Id || '', cfg.googleAdsId || '');
+        // Bot protection (Turnstile) stays on the early path — the guardrail must be
+        // armed before any submit. turnstileRequired flips synchronously, so even a
+        // very fast submit correctly waits for the token while the widget loads.
+        if (cfg.turnstileSiteKey) {
+          turnstileRequired = true;
+          window.__tsLoad = () => {
+            try {
+              turnstile.render('#turnstile-container', {
+                sitekey: cfg.turnstileSiteKey,
+                callback: t => { turnstileToken = t; },
+                'expired-callback': () => { turnstileToken = ''; },
+                'error-callback': () => { turnstileToken = ''; },
+              });
+            } catch (e) { console.error(e); }
+          };
+          const s = document.createElement('script');
+          s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=__tsLoad&render=explicit';
+          s.async = true; s.defer = true;
+          document.head.appendChild(s);
         }
-        if (!cfg.turnstileSiteKey) return;
-        turnstileRequired = true;
-        window.__tsLoad = () => {
-          try {
-            turnstile.render('#turnstile-container', {
-              sitekey: cfg.turnstileSiteKey,
-              callback: t => { turnstileToken = t; },
-              'expired-callback': () => { turnstileToken = ''; },
-              'error-callback': () => { turnstileToken = ''; },
-            });
-          } catch (e) { console.error(e); }
-        };
-        const s = document.createElement('script');
-        s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=__tsLoad&render=explicit';
-        s.async = true; s.defer = true;
-        document.head.appendChild(s);
+        // Stash config + defer analytics to idle (form_start triggers it earlier if so).
+        if (cfg.ga4Id || cfg.googleAdsId) GOOGLE_ADS = { id: cfg.googleAdsId || '', label: cfg.googleAdsLabel || '' };
+        analyticsCfg = cfg;
+        whenIdle(ensureAnalytics);
       })
       .catch(() => {});
 
@@ -568,6 +623,7 @@
     // records the start time so a successful submit can report time-to-complete.
     let formStartedAt = 0;
     form.addEventListener('focusin', function () {
+      ensureAnalytics(); // define the fbq/gtag queues before we emit form_start
       formStartedAt = (window.performance && performance.now) ? performance.now() : Date.now();
       try { if (window.gtag) gtag('event', 'form_start', { product: LEAD_PRODUCT }); } catch (e) {}
       try { if (window.fbq) fbq('track', 'InitiateCheckout', { content_name: LEAD_PRODUCT }); } catch (e) {}
