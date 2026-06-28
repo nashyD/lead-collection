@@ -1,0 +1,11 @@
+# Build inputs and dev-only files. None of these are served by the funnel.
+# tw.css is precompiled and committed; its Tailwind sources live in tools/ and
+# get rebuilt by tools/build-css.sh, never at deploy time.
+tools/
+scripts/
+
+# Repo docs, CI config, and one-time DB setup. Not part of the deployed site.
+.github/
+README.md
+supabase-schema.sql
+.env.example
