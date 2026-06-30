@@ -238,10 +238,10 @@
     <section class="pb-10">
       <h2 class="text-2xl font-extrabold tracking-tight" data-i18n="covered_h">What it's for</h2>
       <ul class="mt-4 space-y-3 text-sf-ink/85">
-        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov1"><strong class="text-sf-ink">Income replacement.</strong> Replaces your paycheck so your family can keep covering the essentials.</span></li>
-        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov2"><strong class="text-sf-ink">The mortgage.</strong> Helps pay off the home so they aren't forced to move during the hardest year of their lives.</span></li>
-        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov3"><strong class="text-sf-ink">Debts &amp; final expenses.</strong> The funeral, medical bills, and loans — so no one inherits the burden.</span></li>
-        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov4"><strong class="text-sf-ink">The kids' future.</strong> College, childcare, and the plans you made for them stay on track.</span></li>
+        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov1"><strong class="text-sf-ink">Income replacement.</strong> A death benefit your family can use to replace your paycheck and cover the essentials.</span></li>
+        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov2"><strong class="text-sf-ink">The mortgage.</strong> Can help pay off the home so they aren't forced to move during the hardest year of their lives.</span></li>
+        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov3"><strong class="text-sf-ink">Debts &amp; final expenses.</strong> Can cover the funeral, medical bills, and loans — so no one inherits the burden.</span></li>
+        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov4"><strong class="text-sf-ink">The kids' future.</strong> Helps keep college, childcare, and the plans you made for them on track.</span></li>
       </ul>
     </section>
 
@@ -329,10 +329,10 @@
         pillar2: 'Para cotizar',
         pillar3: 'Soporte de reclamos',
         covered_h: 'Para qué sirve',
-        cov1: '<strong class="text-sf-ink">Reemplazo de ingresos.</strong> Reemplaza tu sueldo para que tu familia siga cubriendo lo esencial.',
-        cov2: '<strong class="text-sf-ink">La hipoteca.</strong> Ayuda a pagar la casa para que no tengan que mudarse en el año más difícil de su vida.',
-        cov3: '<strong class="text-sf-ink">Deudas y gastos finales.</strong> El funeral, las facturas médicas y los préstamos — para que nadie herede la carga.',
-        cov4: '<strong class="text-sf-ink">El futuro de los hijos.</strong> La universidad, el cuidado y los planes que hiciste para ellos siguen en pie.',
+        cov1: '<strong class="text-sf-ink">Reemplazo de ingresos.</strong> Un beneficio por fallecimiento que tu familia puede usar para reemplazar tu sueldo y cubrir lo esencial.',
+        cov2: '<strong class="text-sf-ink">La hipoteca.</strong> Puede ayudar a pagar la casa para que no tengan que mudarse en el año más difícil de su vida.',
+        cov3: '<strong class="text-sf-ink">Deudas y gastos finales.</strong> Puede cubrir el funeral, las facturas médicas y los préstamos — para que nadie herede la carga.',
+        cov4: '<strong class="text-sf-ink">El futuro de los hijos.</strong> Ayuda a mantener en pie la universidad, el cuidado y los planes que hiciste para ellos.',
         agent_role: 'Agente de State Farm · Gastonia, NC',
         agent_text: 'Texto',
         agent_advocacy: 'Un agente local de verdad, no un centro de llamadas ni un chatbot. Anthony también te ayuda con tu reclamo.',
@@ -378,10 +378,10 @@
         pillar2: 'Pou jwenn yon pri',
         pillar3: 'Sipò pou reklamasyon',
         covered_h: 'Pou kisa li ye',
-        cov1: '<strong class="text-sf-ink">Ranplasman revni.</strong> Ranplase chèk peman w pou fanmi w ka kontinye kouvri sa ki esansyèl.',
-        cov2: '<strong class="text-sf-ink">Ipotèk la.</strong> Ede peye kay la pou yo pa oblije demenaje nan ane ki pi difisil nan lavi yo.',
-        cov3: '<strong class="text-sf-ink">Dèt ak depans final.</strong> Antèman an, bòdwo medikal yo, ak prè yo — pou pèsòn pa eritye chay la.',
-        cov4: '<strong class="text-sf-ink">Avni timoun yo.</strong> Inivèsite, gadri, ak plan ou te fè pou yo rete sou wout.',
+        cov1: '<strong class="text-sf-ink">Ranplasman revni.</strong> Yon benefis lanmò fanmi w ka itilize pou ranplase salè w epi kouvri sa ki esansyèl.',
+        cov2: '<strong class="text-sf-ink">Ipotèk la.</strong> Ka ede peye kay la pou yo pa oblije demenaje nan ane ki pi difisil nan lavi yo.',
+        cov3: '<strong class="text-sf-ink">Dèt ak depans final.</strong> Ka kouvri antèman an, bòdwo medikal yo, ak prè yo — pou pèsòn pa eritye chay la.',
+        cov4: '<strong class="text-sf-ink">Avni timoun yo.</strong> Ede kenbe inivèsite, gadri, ak plan ou te fè pou yo sou wout.',
         agent_role: 'Ajan State Farm · Gastonia, NC',
         agent_text: 'Tèks',
         agent_advocacy: 'Yon vrè ajan lokal, pa yon sant apèl ni yon chatbot. Anthony ede w ak reklamasyon w tou.',
@@ -403,7 +403,7 @@
       const p = new URLSearchParams(location.search);
       const explicit = (p.get('lang') || '').toLowerCase();
       if (['en','es','ht'].includes(explicit)) return explicit;
-      const camp = (p.get('utm_campaign') || '').toLowerCase();      // e.g. homeowners_es / homeowners_ht
+      const camp = (p.get('utm_campaign') || '').toLowerCase();      // e.g. life_es / life_ht
       if (camp.includes('_ht') || camp.endsWith('ht')) return 'ht';
       if (camp.includes('_es') || camp.endsWith('es')) return 'es';
       if (camp.includes('_en') || camp.endsWith('en')) return 'en';
@@ -580,7 +580,7 @@
     const errorBox = document.getElementById('lead-error');
     const phoneInput = document.getElementById('phone');
     const emailInput = document.getElementById('email');
-    // Product line for the conversion event (homeowners/auto carry a hidden
+    // Product line for the conversion event (homeowners/auto/life carry a hidden
     // product field; the renters page has none, so it defaults to 'renters').
     const LEAD_PRODUCT = (document.querySelector('input[name="product"]') || {}).value || 'renters';
     // form_start: fire once when the visitor first focuses any field — the
