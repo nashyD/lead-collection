@@ -10,6 +10,7 @@ on:
       - 'index.html'
       - 'homeowners.html'
       - 'auto.html'
+      - 'life.html'
       - 'tools/**'
       - 'tw.css'
       - '.github/workflows/css-drift.yml'
@@ -19,6 +20,7 @@ on:
       - 'index.html'
       - 'homeowners.html'
       - 'auto.html'
+      - 'life.html'
       - 'tools/**'
       - 'tw.css'
 

@@ -35,11 +35,11 @@
       } catch (e) {}
     })();
   </script>
-  <title>Renters Insurance from $5.50/mo — Anthony Gallant State Farm</title>
-  <meta name="description" content="Get covered in 5 minutes. Renters insurance from $5.50/month with Anthony Gallant, your local State Farm agent." />
+  <title>Life Insurance Quotes in Minutes — Anthony Gallant State Farm</title>
+  <meta name="description" content="Protect the people who count on you. Get a life insurance quote in minutes from Anthony Gallant, your local State Farm agent in Gastonia, NC." />
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-  <link rel="canonical" href="https://www.gallantrenters.com/" />
+  <link rel="canonical" href="https://www.gallantrenters.com/life" />
 
   <!-- Local-business structured data (helps local search + Google Ads quality). Address + hours
        verified 2026-06 via the State Farm agent locator + the agent site. (Optional: a "Suite #1"
@@ -78,8 +78,8 @@
   </script>
 
   <!-- Open Graph for Facebook ad sharing -->
-  <meta property="og:title" content="Renters Insurance from $5.50/mo" />
-  <meta property="og:description" content="Your lease probably requires it. Get a quote in under 60 seconds." />
+  <meta property="og:title" content="Life Insurance Quotes in Minutes" />
+  <meta property="og:description" content="Protect the people who count on you. Get a quote from a local State Farm agent in under 60 seconds." />
   <meta property="og:type" content="website" />
 
   <!-- Precompiled Tailwind (tw.css, ~14KB) replaces the ~407KB render-blocking
@@ -117,15 +117,14 @@
   <main class="mx-auto max-w-xl px-5">
 
     <section class="pt-5 pb-4 sm:pt-8 sm:pb-6">
-      <p class="text-xs font-semibold tracking-[0.18em] uppercase text-sf-red" data-i18n="eyebrow">Renters Insurance</p>
+      <p class="text-xs font-semibold tracking-[0.18em] uppercase text-sf-red" data-i18n="eyebrow">Life Insurance</p>
       <h1 class="mt-3 text-4xl sm:text-5xl font-extrabold leading-[1.05] tracking-tight text-balance" data-i18n-html="hero">
-        Covered in 5 minutes.<br/>
-        <span class="text-sf-red">From $5.50/month.</span>
+        Protect the people<br/>
+        <span class="text-sf-red">who count on you.</span>
       </h1>
       <p class="mt-3 text-base sm:text-lg text-sf-ink/75 text-balance" data-i18n="subhead">
-        Your lease probably requires renters insurance. I'll text you a quote, fast — no phone tag, no upsell.
+        Starting a family, paying off a home, or just want them taken care of? I'll text you a life insurance quote, fast — no phone tag, no upsell.
       </p>
-      <p class="mt-2 text-xs text-sf-ink/70" data-i18n="rate_disclaimer">Sample rate. Your actual renters premium varies by coverage, location, and eligibility.</p>
     </section>
 
     <!-- Lead form card -->
@@ -159,24 +158,15 @@
             </select>
           </div>
           <div>
-            <label for="community" class="block text-sm font-semibold text-sf-ink" data-i18n="lbl_community">Apartment community (optional)</label>
-            <input id="community" name="community" type="text" list="complex-list" autocomplete="off" enterkeyhint="send"
-              placeholder="Start typing your community…" data-i18n-ph="community_ph"
+            <label for="coverage" class="block text-sm font-semibold text-sf-ink" data-i18n="lbl_coverage">Coverage amount you're considering (optional)</label>
+            <input id="coverage" name="coverage" type="text" autocomplete="off" enterkeyhint="send"
+              placeholder="e.g. $250,000" data-i18n-ph="coverage_ph"
               class="mt-1 w-full rounded-lg border border-black/15 px-3 py-3 text-base focus:outline-none focus:border-sf-red focus:ring-2 focus:ring-sf-red/20" />
-            <datalist id="complex-list"></datalist>
+            <p class="mt-1 text-xs text-sf-ink/70" data-i18n="coverage_hint">Not sure yet? Leave it blank — we'll help you figure out the right amount.</p>
           </div>
 
-          <!-- Partner opt-in: send proof of coverage to the resident's apartment
-               community to satisfy the lease. Revealed by JS only when this looks
-               like a partner-channel visit (came via a partner QR, utm_source=apt,
-               or a community is chosen). -->
-          <div id="share-proof-wrap" class="hidden">
-            <label class="flex items-start gap-2.5 cursor-pointer select-none">
-              <input id="share_with_property" name="share_with_property" type="checkbox"
-                class="mt-0.5 h-4 w-4 flex-shrink-0 rounded border-black/25 text-sf-red focus:ring-2 focus:ring-sf-red/30" />
-              <span class="text-xs text-sf-ink/70 leading-snug" data-i18n="share_proof">Send my proof of renters insurance to my apartment community to satisfy my lease (optional).</span>
-            </label>
-          </div>
+          <!-- Product line — tells the server this is a life lead -->
+          <input type="hidden" name="product" value="life" />
 
           <!-- Hidden source tracking -->
           <input type="hidden" id="utm_source" name="utm_source" />
@@ -230,12 +220,12 @@
     <section class="pb-10">
       <div class="grid grid-cols-3 gap-3 text-center">
         <div class="rounded-xl bg-white border border-black/10 p-3">
-          <div class="text-xl font-extrabold text-sf-red">$300K+</div>
-          <div class="text-xs text-sf-ink/65 mt-1 leading-tight" data-i18n="pillar1">Liability protection</div>
+          <div class="text-xl font-extrabold text-sf-red" data-i18n="pillar1_big">Local</div>
+          <div class="text-xs text-sf-ink/65 mt-1 leading-tight" data-i18n="pillar1">Gastonia agent you can call</div>
         </div>
         <div class="rounded-xl bg-white border border-black/10 p-3">
           <div class="text-xl font-extrabold text-sf-red">5 min</div>
-          <div class="text-xs text-sf-ink/65 mt-1 leading-tight" data-i18n="pillar2">To get covered</div>
+          <div class="text-xs text-sf-ink/65 mt-1 leading-tight" data-i18n="pillar2">To get a quote</div>
         </div>
         <div class="rounded-xl bg-white border border-black/10 p-3">
           <div class="text-xl font-extrabold text-sf-red">24/7</div>
@@ -246,12 +236,12 @@
 
     <!-- What it covers -->
     <section class="pb-10">
-      <h2 class="text-2xl font-extrabold tracking-tight" data-i18n="covered_h">What's covered</h2>
+      <h2 class="text-2xl font-extrabold tracking-tight" data-i18n="covered_h">What it's for</h2>
       <ul class="mt-4 space-y-3 text-sf-ink/85">
-        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov1"><strong class="text-sf-ink">Your stuff.</strong> TVs, clothes, furniture, laptops, gaming consoles, bikes.</span></li>
-        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov2"><strong class="text-sf-ink">Damage from fire, smoke, water, theft, wind.</strong></span></li>
-        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov3"><strong class="text-sf-ink">$300,000+ liability</strong> if someone's hurt in your unit or you accidentally damage the building.</span></li>
-        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov4"><strong class="text-sf-ink">Loss of use.</strong> Hotel costs if your unit becomes unlivable.</span></li>
+        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov1"><strong class="text-sf-ink">Income replacement.</strong> Replaces your paycheck so your family can keep covering the essentials.</span></li>
+        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov2"><strong class="text-sf-ink">The mortgage.</strong> Helps pay off the home so they aren't forced to move during the hardest year of their lives.</span></li>
+        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov3"><strong class="text-sf-ink">Debts &amp; final expenses.</strong> The funeral, medical bills, and loans — so no one inherits the burden.</span></li>
+        <li class="flex gap-3"><span class="text-sf-red font-bold">—</span><span data-i18n-html="cov4"><strong class="text-sf-ink">The kids' future.</strong> College, childcare, and the plans you made for them stay on track.</span></li>
       </ul>
     </section>
 
@@ -273,14 +263,14 @@
       </div>
     </section>
 
-    <!-- Cross-sell: homeowners -->
+    <!-- Cross-sell: bundle home/auto -->
     <section class="pb-12 text-center text-sm text-sf-ink/65">
-      <span data-i18n="cross_sell">Own your home?</span>
-      <a href="/homeowners" class="font-semibold text-sf-red hover:underline" data-i18n="cross_link">Get a homeowners quote →</a>
+      <span data-i18n="cross_sell">Insuring a home or car too?</span>
+      <a href="/homeowners" class="font-semibold text-sf-red hover:underline" data-i18n="cross_link">Bundle and save →</a>
     </section>
 
     <footer class="pb-24 sm:pb-10 text-xs text-sf-ink/70 text-center">
-      &copy; <span id="year"></span> <span data-i18n="footer">Anthony Gallant, State Farm Agent. State Farm Mutual Automobile Insurance Company, Bloomington, IL. Coverage subject to terms, conditions, and availability.</span>
+      &copy; <span id="year"></span> <span data-i18n="footer">Anthony Gallant, State Farm Agent. Life insurance issued by State Farm Life Insurance Company, Bloomington, IL. Coverage subject to terms, conditions, and availability.</span>
       <span id="tracking-notice" class="hidden block mt-2" data-i18n="tracking_notice">This site uses cookies and ad-measurement tools (Meta, Google) to improve our ads.</span>
     </footer>
   </main>
@@ -288,8 +278,8 @@
   <script>
     // ---------- i18n ----------
     // English is the markup default; we capture it from the DOM, and only the
-    // Spanish strings live here. NOTE: Spanish copy should be reviewed by a
-    // native speaker (esp. the consent line) before this is considered final.
+    // Spanish/Creole strings live here. NOTE: both should be reviewed by native
+    // speakers (esp. the consent line) before this is considered final.
     const I18N = {
       en: {
         _title: document.title,
@@ -305,7 +295,7 @@
         success_p_closed: 'Anthony will text you first thing when the office opens (Mon–Fri, 9am).',
       },
       es: {
-        _title: 'Seguro para inquilinos desde $5.50/mes — Anthony Gallant State Farm',
+        _title: 'Seguro de vida en minutos — Anthony Gallant State Farm',
         _sending: 'Enviando…',
         _fillAll: 'Por favor completa todos los campos.',
         _err: 'Algo salió mal. Por favor llama al (704) 853-8001.',
@@ -318,43 +308,43 @@
         success_call: 'O llama a Anthony ahora',
         success_text: '¿Prefieres texto? Envíale un mensaje',
         sticky_cta: 'Obtener mi cotización',
-        eyebrow: 'Seguro para inquilinos',
-        hero: 'Asegurado en 5 minutos.<br/><span class="text-sf-red">Desde $5.50/mes.</span>',
-        subhead: 'Tu contrato probablemente requiere seguro para inquilinos. Te enviaré una cotización rápido, sin llamadas perdidas ni presión.',
-        rate_disclaimer: 'Tarifa de muestra. Tu prima real de inquilino varía según la cobertura, la ubicación y la elegibilidad.',
+        eyebrow: 'Seguro de vida',
+        hero: 'Protege a quienes<br/><span class="text-sf-red">cuentan contigo.</span>',
+        subhead: '¿Empezando una familia, pagando una casa, o solo quieres que estén protegidos si algo pasa? Te enviaré una cotización de seguro de vida rápido, sin llamadas perdidas ni presión.',
         lbl_firstName: 'Nombre',
         lbl_phone: 'Teléfono celular',
         phone_hint: 'Solo lo usamos para enviarte tu cotización por texto. Sin llamadas automáticas.',
         lbl_email: 'Correo electrónico',
         lbl_language: 'Idioma que hablas',
-        lbl_community: 'Comunidad de apartamentos (opcional)',
-        community_ph: 'Empieza a escribir tu comunidad…',
-        share_proof: 'Envía mi comprobante de seguro de inquilino a mi comunidad de apartamentos para cumplir con mi contrato (opcional).',
+        lbl_coverage: 'Monto de cobertura que consideras (opcional)',
+        coverage_ph: 'ej. $250,000',
+        coverage_hint: '¿No estás seguro? Déjalo en blanco — te ayudamos a definir el monto correcto.',
         btn_submit: 'Envíame mi cotización',
         consent: 'Al enviar, aceptas que Anthony Gallant State Farm puede comunicarse contigo por texto y correo electrónico sobre tu cotización. Pueden aplicarse tarifas estándar. Sin spam.',
         success_h: '¡Listo! Revisa tu teléfono.',
         success_p: 'Anthony te enviará un mensaje dentro de 5 minutos en horario de oficina.',
         success_p_closed: 'Anthony te enviará un mensaje apenas abra la oficina (lun–vie, 9am).',
-        pillar1: 'Protección de responsabilidad',
-        pillar2: 'Para asegurarte',
+        pillar1_big: 'Local',
+        pillar1: 'Agente en Gastonia a quien puedes llamar',
+        pillar2: 'Para cotizar',
         pillar3: 'Soporte de reclamos',
-        covered_h: 'Qué cubre',
-        cov1: '<strong class="text-sf-ink">Tus cosas.</strong> TVs, ropa, muebles, laptops, consolas, bicicletas.',
-        cov2: '<strong class="text-sf-ink">Daños por incendio, humo, agua, robo y viento.</strong>',
-        cov3: '<strong class="text-sf-ink">$300,000+ de responsabilidad civil</strong> si alguien se lastima en tu apartamento o dañas el edificio accidentalmente.',
-        cov4: '<strong class="text-sf-ink">Pérdida de uso.</strong> Costos de hotel si tu apartamento queda inhabitable.',
+        covered_h: 'Para qué sirve',
+        cov1: '<strong class="text-sf-ink">Reemplazo de ingresos.</strong> Reemplaza tu sueldo para que tu familia siga cubriendo lo esencial.',
+        cov2: '<strong class="text-sf-ink">La hipoteca.</strong> Ayuda a pagar la casa para que no tengan que mudarse en el año más difícil de su vida.',
+        cov3: '<strong class="text-sf-ink">Deudas y gastos finales.</strong> El funeral, las facturas médicas y los préstamos — para que nadie herede la carga.',
+        cov4: '<strong class="text-sf-ink">El futuro de los hijos.</strong> La universidad, el cuidado y los planes que hiciste para ellos siguen en pie.',
         agent_role: 'Agente de State Farm · Gastonia, NC',
         agent_text: 'Texto',
         agent_advocacy: 'Un agente local de verdad, no un centro de llamadas ni un chatbot. Anthony también te ayuda con tu reclamo.',
-        cross_sell: '¿Eres dueño de tu casa?',
-        cross_link: 'Cotiza tu seguro de propietarios →',
-        footer: 'Anthony Gallant, Agente de State Farm. State Farm Mutual Automobile Insurance Company, Bloomington, IL. La cobertura está sujeta a términos, condiciones y disponibilidad.',
+        cross_sell: '¿Aseguras también una casa o un carro?',
+        cross_link: 'Combina y ahorra →',
+        footer: 'Anthony Gallant, Agente de State Farm. Seguro de vida emitido por State Farm Life Insurance Company, Bloomington, IL. La cobertura está sujeta a términos, condiciones y disponibilidad.',
         tracking_notice: 'Este sitio usa cookies y herramientas de medición publicitaria (Meta, Google) para mejorar nuestros anuncios.',
       },
       // Haitian Creole (Kreyòl Ayisyen). DRAFT — must be reviewed by a native
       // speaker before public use, especially the consent line.
       ht: {
-        _title: 'Asirans pou Lokatè apati $5.50/mwa — Anthony Gallant State Farm',
+        _title: 'Asirans Lavi nan kèk minit — Anthony Gallant State Farm',
         _sending: 'Ap voye…',
         _fillAll: 'Tanpri ranpli tout chan yo.',
         _err: 'Gen yon pwoblèm ki rive. Tanpri rele (704) 853-8001.',
@@ -367,37 +357,37 @@
         success_call: 'Oswa rele Anthony kounye a',
         success_text: 'Pito tèks? Voye yon mesaj ba li',
         sticky_cta: 'Jwenn pri mwen',
-        eyebrow: 'Asirans pou Lokatè',
-        hero: 'Asire nan 5 minit.<br/><span class="text-sf-red">Apati $5.50/mwa.</span>',
-        subhead: 'Kontra lwaye w la pwobableman mande asirans pou lokatè. M ap voye yon pri ba ou byen vit, san pèdi tan, san presyon.',
-        rate_disclaimer: 'Tarif egzanp. Pri reyèl asirans lokatè ou a varye selon kouvèti, kote w ye, ak kalifikasyon.',
+        eyebrow: 'Asirans Lavi',
+        hero: 'Pwoteje moun ki<br/><span class="text-sf-red">konte sou ou.</span>',
+        subhead: 'W ap kòmanse yon fanmi, w ap peye yon kay, oswa ou jis vle yo pwoteje si yon bagay rive? M ap voye yon pri asirans lavi ba ou byen vit, san pèdi tan, san presyon.',
         lbl_firstName: 'Prenon',
         lbl_phone: 'Telefòn selilè',
         phone_hint: 'Nou sèvi avè l sèlman pou voye pri w pa tèks. Pa gen apèl otomatik.',
         lbl_email: 'Imèl',
         lbl_language: 'Lang ou pale',
-        lbl_community: 'Kominote apatman (opsyonèl)',
-        community_ph: 'Kòmanse tape non kominote w…',
-        share_proof: 'Voye prèv asirans lokatè mwen bay kominote apatman mwen pou satisfè kontra mwen (opsyonèl).',
+        lbl_coverage: 'Montan kouvèti w ap konsidere (opsyonèl)',
+        coverage_ph: 'egz. $250,000',
+        coverage_hint: 'Ou pa sèten? Kite l vid — n ap ede w jwenn bon montan an.',
         btn_submit: 'Voye pri m ban mwen',
         consent: 'Lè w voye sa, ou dakò pou Anthony Gallant State Farm kapab kontakte w pa tèks ak imèl konsènan pri w la. Tarif estanda kapab aplike. Pa gen spam.',
         success_h: 'Nou resevwa l — tcheke telefòn ou.',
         success_p: 'Anthony ap voye yon mesaj ba ou nan 5 minit pandan lè biwo a louvri.',
         success_p_closed: 'Anthony ap voye yon mesaj ba ou kou biwo a louvri (lendi–vandredi, 9è nan maten).',
-        pillar1: 'Pwoteksyon responsablite',
-        pillar2: 'Pou w jwenn kouvèti',
+        pillar1_big: 'Lokal',
+        pillar1: 'Ajan nan Gastonia ou ka rele',
+        pillar2: 'Pou jwenn yon pri',
         pillar3: 'Sipò pou reklamasyon',
-        covered_h: 'Sa ki kouvri',
-        cov1: '<strong class="text-sf-ink">Bagay ou yo.</strong> Televizyon, rad, mèb, laptop, konsòl jwèt, bisiklèt.',
-        cov2: '<strong class="text-sf-ink">Domaj akòz dife, lafimen, dlo, vòl, ak van.</strong>',
-        cov3: '<strong class="text-sf-ink">$300,000+ responsablite</strong> si yon moun blese nan apatman w oswa ou domaje bilding lan san fè espre.',
-        cov4: '<strong class="text-sf-ink">Pèt itilizasyon.</strong> Frè otèl si apatman w pa ka abite ankò.',
+        covered_h: 'Pou kisa li ye',
+        cov1: '<strong class="text-sf-ink">Ranplasman revni.</strong> Ranplase chèk peman w pou fanmi w ka kontinye kouvri sa ki esansyèl.',
+        cov2: '<strong class="text-sf-ink">Ipotèk la.</strong> Ede peye kay la pou yo pa oblije demenaje nan ane ki pi difisil nan lavi yo.',
+        cov3: '<strong class="text-sf-ink">Dèt ak depans final.</strong> Antèman an, bòdwo medikal yo, ak prè yo — pou pèsòn pa eritye chay la.',
+        cov4: '<strong class="text-sf-ink">Avni timoun yo.</strong> Inivèsite, gadri, ak plan ou te fè pou yo rete sou wout.',
         agent_role: 'Ajan State Farm · Gastonia, NC',
         agent_text: 'Tèks',
         agent_advocacy: 'Yon vrè ajan lokal, pa yon sant apèl ni yon chatbot. Anthony ede w ak reklamasyon w tou.',
-        cross_sell: 'Ou se mèt kay ou?',
-        cross_link: 'Jwenn yon pri pou asirans kay →',
-        footer: 'Anthony Gallant, Ajan State Farm. State Farm Mutual Automobile Insurance Company, Bloomington, IL. Kouvèti a sijè a tèm, kondisyon, ak disponiblite.',
+        cross_sell: 'W ap asire yon kay oswa yon machin tou?',
+        cross_link: 'Konbine epi ekonomize →',
+        footer: 'Anthony Gallant, Ajan State Farm. Asirans lavi emèt pa State Farm Life Insurance Company, Bloomington, IL. Kouvèti a sijè a tèm, kondisyon, ak disponiblite.',
         tracking_notice: 'Sit sa a sèvi ak cookies ak zouti mezi piblisite (Meta, Google) pou amelyore piblisite nou yo.',
       },
     };
@@ -413,7 +403,7 @@
       const p = new URLSearchParams(location.search);
       const explicit = (p.get('lang') || '').toLowerCase();
       if (['en','es','ht'].includes(explicit)) return explicit;
-      const camp = (p.get('utm_campaign') || '').toLowerCase();      // e.g. renters_es / renters_ht
+      const camp = (p.get('utm_campaign') || '').toLowerCase();      // e.g. homeowners_es / homeowners_ht
       if (camp.includes('_ht') || camp.endsWith('ht')) return 'ht';
       if (camp.includes('_es') || camp.endsWith('es')) return 'es';
       if (camp.includes('_en') || camp.endsWith('en')) return 'en';
@@ -473,20 +463,6 @@
         if (el) el.value = params.get(k) || '';
       });
       document.getElementById('year').textContent = new Date().getFullYear();
-      // Reveal the "send proof to my community" opt-in only once a community is
-      // actually named. Otherwise a resident could opt in with no community on
-      // file — a consent the office can never fulfill, since partner-proof.js needs
-      // a resolved complex to send the proof to. A partner-channel visit
-      // (utm_source=apt) still lands here, but the community field gates the opt-in.
-      const shareWrap = document.getElementById('share-proof-wrap');
-      const communityEl = document.getElementById('community');
-      const updateShare = () => {
-        if (!shareWrap) return;
-        const show = !!(communityEl && communityEl.value.trim());
-        shareWrap.classList.toggle('hidden', !show);
-      };
-      if (communityEl) communityEl.addEventListener('input', updateShare);
-      updateShare();
       applyLang(detectLang());
     })();
 
@@ -497,18 +473,6 @@
     // Once the visitor picks a spoken language, stop auto-syncing it to the toggle.
     const langSelEl = document.getElementById('language');
     if (langSelEl) langSelEl.addEventListener('change', () => { langSelEl.dataset.touched = '1'; });
-
-    // Populate the apartment-community picker from the public complex list.
-    fetch('/api/complexes-public')
-      .then(r => (r.ok ? r.json() : { complexes: [] }))
-      .then(d => {
-        const dl = document.getElementById('complex-list');
-        if (!dl || !Array.isArray(d.complexes)) return;
-        dl.innerHTML = d.complexes
-          .map(c => `<option value="${String(c.name || '').replace(/"/g, '&quot;')}"></option>`)
-          .join('');
-      })
-      .catch(() => {});
 
     // ---------- analytics: Meta (Facebook) Pixel ----------
     // Injected only when META_PIXEL_ID is configured (served via /api/config),
@@ -667,10 +631,6 @@
       // Capture the exact consent language the visitor agreed to (TCPA proof).
       const consentEl = document.querySelector('[data-i18n="consent"]');
       if (consentEl) payload.consent_text = consentEl.textContent.trim();
-      // Partner opt-in — only sent true when the opt-in is actually shown + checked.
-      const shareEl = document.getElementById('share_with_property');
-      const shareWrapEl = document.getElementById('share-proof-wrap');
-      payload.share_with_property = !!(shareEl && shareEl.checked && shareWrapEl && !shareWrapEl.classList.contains('hidden'));
       // Shared event id so the browser pixel and the server Conversions API dedup
       // to ONE Lead conversion instead of double-counting.
       const EVENT_ID = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now() + '-' + Math.random().toString(16).slice(2));

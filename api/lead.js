@@ -21,7 +21,7 @@ import { createHash } from 'node:crypto';
 const OFFICE_PHONE = '(704) 853-8001';
 const FROM_NAME = 'Anthony Gallant State Farm';
 const LANGUAGE_LABELS = { en: 'English', es: 'Spanish', ht: 'Haitian Creole' };
-const PRODUCT_LABELS = { renters: 'renters', homeowners: 'homeowners', auto: 'auto' };
+const PRODUCT_LABELS = { renters: 'renters', homeowners: 'homeowners', auto: 'auto', life: 'life' };
 
 export default async function handler(req, res) {
   // CORS (in case the form is ever hosted on a different domain)
@@ -99,6 +99,10 @@ export default async function handler(req, res) {
   // Self-reported vehicle — year/make/model (auto form only, optional).
   const vehicle = String(body.vehicle || '').trim().slice(0, 200);
 
+  // Self-reported coverage amount the visitor is considering (life form only,
+  // optional free text — never required). Mirrors 'address'/'vehicle'.
+  const coverage = String(body.coverage || '').trim().slice(0, 200);
+
   // The exact consent language the visitor agreed to (sent by the form). Stored
   // with a server timestamp + the ip/user-agent captured below, as TCPA
   // proof-of-consent for the text/email outreach. Capped; optional/fail-soft.
@@ -124,6 +128,7 @@ export default async function handler(req, res) {
     product,
     address,
     vehicle,
+    coverage,
     consentText,
     shareWithProperty,
     receivedAt: new Date().toISOString(),
@@ -212,6 +217,7 @@ async function saveLeadToSupabase(lead) {
     product:    lead.product,
     address:    lead.address,
     vehicle:    lead.vehicle,
+    coverage_amount: lead.coverage,
     source:     lead.source,
     medium:     lead.medium,
     campaign:   lead.campaign,
@@ -291,7 +297,7 @@ async function saveLeadToSupabase(lead) {
   // Columns added by later migrations that may not exist yet in a given DB.
   // Everything NOT in this list (first_name/phone/email/source/medium/campaign/
   // user_agent/ip) is part of the original schema and always present.
-  const OPTIONAL_COLS = ['language', 'product', 'address', 'vehicle', 'complex_id', 'complex_other', 'dealership_id', 'dealership_other', 'consent_text', 'consented_at', 'share_with_property'];
+  const OPTIONAL_COLS = ['language', 'product', 'address', 'vehicle', 'coverage_amount', 'complex_id', 'complex_other', 'dealership_id', 'dealership_other', 'consent_text', 'consented_at', 'share_with_property'];
 
   // Insert with a self-healing retry so a paid lead is never lost to a schema
   // that's mid-migration:
@@ -368,6 +374,7 @@ async function emailOffice(lead, recipients) {
         ${lead.shareWithProperty ? `<tr><td style="padding:6px 0;color:#666;">Share proof</td><td style="padding:6px 0;font-weight:700;color:#065F46;">Resident opted in — send proof to their community once bound</td></tr>` : ''}
         ${lead.address ? `<tr><td style="padding:6px 0;color:#666;">Address</td><td style="padding:6px 0;">${escapeHtml(lead.address)}</td></tr>` : ''}
         ${lead.vehicle ? `<tr><td style="padding:6px 0;color:#666;">Vehicle</td><td style="padding:6px 0;">${escapeHtml(lead.vehicle)}</td></tr>` : ''}
+        ${lead.coverage ? `<tr><td style="padding:6px 0;color:#666;">Coverage</td><td style="padding:6px 0;">${escapeHtml(lead.coverage)}</td></tr>` : ''}
         ${lead.dealership ? `<tr><td style="padding:6px 0;color:#666;">Dealership</td><td style="padding:6px 0;">${escapeHtml(lead.dealership)}</td></tr>` : ''}
         <tr><td style="padding:6px 0;color:#666;">Phone</td><td style="padding:6px 0;font-weight:600;"><a href="sms:${lead.phone}">${lead.phone}</a> · <a href="tel:${lead.phone}">call</a></td></tr>
         <tr><td style="padding:6px 0;color:#666;">Email</td><td style="padding:6px 0;"><a href="mailto:${lead.email}">${escapeHtml(lead.email)}</a></td></tr>
