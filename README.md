@@ -1,9 +1,9 @@
 # State Farm renters lead funnel
 
-Static landing funnel for Anthony Gallant (renters / homeowners / auto), served
-on Vercel with a few serverless functions under `api/`. The three public pages
-are `index.html` (renters), `homeowners.html`, and `auto.html`. `dashboard.html`
-is the internal lead view.
+Static landing funnel for Anthony Gallant (renters / homeowners / auto / life),
+served on Vercel with a few serverless functions under `api/`. The four public
+pages are `index.html` (renters), `homeowners.html`, `auto.html`, and
+`life.html`. `dashboard.html` is the internal lead view.
 
 ## Precompiled CSS: rebuild after any class edit
 
@@ -18,7 +18,7 @@ stylesheet, `tw.css`, which is committed to the repo. Its sources live in
   minified output is byte-for-byte reproducible.
 
 **If you add, remove, or rename a Tailwind class in `index.html`,
-`homeowners.html`, or `auto.html`, you must regenerate `tw.css`:**
+`homeowners.html`, `auto.html`, or `life.html`, you must regenerate `tw.css`:**
 
 ```bash
 bash tools/build-css.sh

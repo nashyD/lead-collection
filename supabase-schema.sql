@@ -165,6 +165,12 @@ create index if not exists leads_product_idx on public.leads (product);
 alter table public.leads add column if not exists vehicle text default '';
 
 -- ---------------------------------------------------------------------------
+-- Self-reported coverage amount the visitor is considering, from the life
+-- funnel (/life, optional free text — never required). Mirrors the homeowners
+-- 'address' and auto 'vehicle' fields.
+alter table public.leads add column if not exists coverage_amount text default '';
+
+-- ---------------------------------------------------------------------------
 -- Car dealerships: the auto-side canvassing list AND the dimension auto leads
 -- attribute to. Exactly mirrors `complexes` (the apartment canvassing list) but
 -- for dealership partnerships. Seeded from the Google Places API

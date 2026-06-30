@@ -1,6 +1,6 @@
 /**
  * Tailwind v3 config for the precompiled /tw.css that replaces the Tailwind Play
- * CDN on the three landing pages (index/homeowners/auto). The dashboard still
+ * CDN on the four landing pages (index/homeowners/auto/life). The dashboard still
  * uses the CDN by design (internal, not paid-traffic). Regenerate after changing
  * any classes in the pages: `bash tools/build-css.sh` (see that script).
  *
@@ -11,7 +11,7 @@
  * safelist is the belt-and-suspenders for a live ad funnel.
  */
 module.exports = {
-  content: ['./index.html', './homeowners.html', './auto.html'],
+  content: ['./index.html', './homeowners.html', './auto.html', './life.html'],
   theme: {
     extend: {
       colors: {

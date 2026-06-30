@@ -1240,7 +1240,7 @@
       // product column (null) default to Renters, the original sole product.
       const productBadge = card.querySelector('.product-badge');
       if (productBadge) {
-        const PRODUCT_BADGES = { renters: 'Renters', homeowners: 'Home', auto: 'Auto' };
+        const PRODUCT_BADGES = { renters: 'Renters', homeowners: 'Home', auto: 'Auto', life: 'Life' };
         productBadge.textContent = PRODUCT_BADGES[lead.product] || PRODUCT_BADGES.renters;
         productBadge.classList.remove('hidden');
       }
